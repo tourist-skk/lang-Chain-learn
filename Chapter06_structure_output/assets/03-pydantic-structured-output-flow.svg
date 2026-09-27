@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="1260" viewBox="0 0 1160 1260" role="img" aria-labelledby="title desc">
+  <title id="title">Pydantic 与 LangChain：从结构定义到 Python 对象</title>
+  <desc id="desc">构建链时只在本地绑定 Person 类与解析器。执行 invoke 后，json_schema 路径由 SDK 使用 Pydantic 校验 JSON 内容并创建实例；function_calling 路径由 LangChain 解析工具参数并用 Pydantic 创建实例。两条路径的 Python 对象都在运行程序的一侧创建。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+    <style>
+      text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+      .title{font-size:30px;font-weight:700}
+      .sub{font-size:17px;fill:#52677e}
+      .label{font-size:19px;font-weight:650}
+      .body{font-size:18px}
+      .code{font-family:"SFMono-Regular",Consolas,"PingFang SC",monospace;font-size:16px}
+      .small{font-size:16px;fill:#52677e}
+      .arrow{fill:none;stroke:#64748b;stroke-width:2;marker-end:url(#arrow)}
+      .local{fill:#eef5ff;stroke:#bad2f1;stroke-width:1.5}
+      .remote{fill:#e9f8f1;stroke:#9ad4b6;stroke-width:1.5}
+      .result{fill:#fff5e4;stroke:#e8c58a;stroke-width:1.5}
+    </style>
+  </defs>
+  <rect width="1160" height="1260" rx="20" fill="#f6f8fc"/>
+  <text x="36" y="51" class="title">Pydantic × LangChain：Python 对象在哪里诞生？</text>
+  <text x="36" y="82" class="sub">非流式 ChatOpenAI / Chat Completions · 远端生成数据，本地校验并创建对象</text>
+
+  <rect x="32" y="108" width="1096" height="152" rx="16" fill="#ffffff" stroke="#dce4ee"/>
+  <text x="52" y="139" class="label">构建阶段 · 本地 · 不发起模型请求</text>
+  <rect x="52" y="160" width="266" height="76" rx="10" class="local"/>
+  <text x="72" y="190" class="label">定义 Person 类</text>
+  <text x="72" y="216" class="small">字段、类型、描述、本地校验规则</text>
+  <path d="M 330 198 H 388" class="arrow"/>
+  <rect x="400" y="160" width="354" height="76" rx="10" class="local"/>
+  <text x="420" y="190" class="code">with_structured_output(Person)</text>
+  <text x="420" y="216" class="small">按 method 绑定参数并选择解析器</text>
+  <path d="M 766 198 H 824" class="arrow"/>
+  <rect x="836" y="160" width="272" height="76" rx="10" class="local"/>
+  <text x="856" y="190" class="label">得到 Runnable</text>
+  <text x="856" y="216" class="small">绑定后的模型 → 解析组件</text>
+
+  <text x="36" y="300" class="label">执行阶段 · invoke("张三是一名 30 岁的软件工程师")</text>
+  <rect x="32" y="322" width="532" height="766" rx="16" fill="#ffffff" stroke="#dce4ee"/>
+  <rect x="596" y="322" width="532" height="766" rx="16" fill="#ffffff" stroke="#dce4ee"/>
+  <text x="56" y="358" class="label">路径 A · json_schema</text>
+  <text x="620" y="358" class="label">路径 B · function_calling</text>
+
+  <rect x="56" y="382" width="484" height="94" rx="12" class="local"/>
+  <text x="76" y="411" class="label">① 本地 · LangChain + SDK 准备请求</text>
+  <text x="76" y="438" class="code">response_format → JSON Schema</text>
+  <text x="76" y="462" class="small">随输入消息发送；不上传 Python 类或函数体</text>
+  <path d="M 298 478 V 508" class="arrow"/>
+
+  <rect x="620" y="382" width="484" height="94" rx="12" class="local"/>
+  <text x="640" y="411" class="label">① 本地 · LangChain + SDK 准备请求</text>
+  <text x="640" y="438" class="code">tools → parameters + tool_choice</text>
+  <text x="640" y="462" class="small">把 Person 当作工具的参数结构说明</text>
+  <path d="M 862 478 V 508" class="arrow"/>
+
+  <rect x="56" y="512" width="484" height="94" rx="12" class="remote"/>
+  <text x="76" y="541" class="label">② 远端 · 服务端 / LLM 生成数据</text>
+  <text x="76" y="568" class="body">返回 content 中的 JSON 内容</text>
+  <text x="76" y="592" class="code">'{"name":"张三","age":30,...}'</text>
+  <path d="M 298 608 V 638" class="arrow"/>
+
+  <rect x="620" y="512" width="484" height="94" rx="12" class="remote"/>
+  <text x="640" y="541" class="label">② 远端 · 服务端 / LLM 生成数据</text>
+  <text x="640" y="568" class="body">返回工具名及 arguments JSON 字符串</text>
+  <text x="640" y="592" class="code">name="Person", arguments='{...}'</text>
+  <path d="M 862 608 V 638" class="arrow"/>
+
+  <rect x="56" y="642" width="484" height="94" rx="12" class="result"/>
+  <text x="76" y="671" class="label">③ 本地 · SDK 调用 Pydantic</text>
+  <text x="76" y="698" class="code">Person.model_validate_json(content)</text>
+  <text x="76" y="722" class="body">在这里：校验数据，创建 Person 实例</text>
+  <path d="M 298 738 V 768" class="arrow"/>
+
+  <rect x="620" y="642" width="484" height="94" rx="12" class="local"/>
+  <text x="640" y="671" class="label">③ 本地 · LangChain 包装消息</text>
+  <text x="640" y="698" class="code">AIMessage.tool_calls[0]["args"]</text>
+  <text x="640" y="722" class="body">参数已解析为 dict，还不是 Person 实例</text>
+  <path d="M 862 738 V 768" class="arrow"/>
+
+  <rect x="56" y="772" width="484" height="94" rx="12" class="local"/>
+  <text x="76" y="801" class="label">④ 本地 · LangChain 包装消息</text>
+  <text x="76" y="828" class="code">AIMessage.additional_kwargs["parsed"]</text>
+  <text x="76" y="852" class="body">保存 SDK 已经创建好的 Person 实例</text>
+  <path d="M 298 868 V 898" class="arrow"/>
+
+  <rect x="620" y="772" width="484" height="94" rx="12" class="result"/>
+  <text x="640" y="801" class="label">④ 本地 · 工具解析器调用 Pydantic</text>
+  <text x="640" y="828" class="code">PydanticToolsParser → Person(**args)</text>
+  <text x="640" y="852" class="body">在这里：校验数据，创建 Person 实例</text>
+  <path d="M 862 868 V 898" class="arrow"/>
+
+  <rect x="56" y="902" width="484" height="94" rx="12" class="local"/>
+  <text x="76" y="931" class="label">⑤ 解析组件取出对象 → 业务代码</text>
+  <text x="76" y="958" class="code">person.age → 30</text>
+  <text x="76" y="982" class="small">include_raw=False 时直接返回 Person</text>
+
+  <rect x="620" y="902" width="484" height="94" rx="12" class="local"/>
+  <text x="640" y="931" class="label">⑤ 解析器返回对象 → 业务代码</text>
+  <text x="640" y="958" class="code">person.age → 30</text>
+  <text x="640" y="982" class="small">无需再执行工具或追加一轮模型对话</text>
+
+  <text x="56" y="1031" class="small">对象通常在 SDK 内创建，早于最后的解析组件。</text>
+  <text x="56" y="1058" class="small">SDK 阶段的错误可能直接从模型调用中抛出。</text>
+  <text x="620" y="1031" class="small">对象在 LangChain 的工具解析器内创建。</text>
+  <text x="620" y="1058" class="small">该阶段的校验错误可被 include_raw 分支捕获。</text>
+
+  <rect x="32" y="1112" width="1096" height="116" rx="14" fill="#edf1f7"/>
+  <text x="52" y="1144" class="label">同一个 Person 类，两次发挥作用</text>
+  <text x="52" y="1175" class="body">发请求：提供 JSON Schema。收响应：提供校验规则和实例构造能力。</text>
+  <text x="52" y="1205" class="small">图中省略的 JSON 字段用 ... 表示。结构合法 ≠ 内容真实；失败时可能无法得到有效对象。</text>
+</svg>
