@@ -12,3 +12,14 @@ wheels/
 
 # macOS
 .DS_Store
+
+# IDE
+.vscode/
+
+# Scratch workspace
+todo_workspace/
+
+# Chapter08_Middleware scratch files
+Chapter08_Middleware/temp.py
+Chapter08_Middleware/fake_deepseek.py
+Chapter08_Middleware/call_times_with_jitter.txt

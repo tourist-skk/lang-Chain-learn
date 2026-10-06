@@ -6,10 +6,13 @@ requires-python = ">=3.11"
 dependencies = [
     "jupyter>=1.1.1",
     "langchain>=1.4.2",
+    "langchain-anthropic>=1.7.5",
     "langchain-community>=0.4.2",
     "langchain-deepseek>=1.1.1",
     "langchain-openai>=1.6.4",
+    "langchain-tavily>=0.2.18",
     "ollama>=0.6.2",
+    "pytest>=9.1.1",
     "python-dotenv>=1.2.3",
     "rich>=15.0.0",
 ]
