@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="770" viewBox="0 0 1160 770" role="img" aria-labelledby="title desc">
+  <title id="title">from_conn_string 返回的是什么</title>
+  <desc id="desc">from_conn_string 只返回一个上下文管理器。进入 with 时它打开数据库连接，用连接创建 PostgresSaver 对象，交给 as 后面的 checkpointer；with 内部读写检查点都通过这个连接；离开 with 时连接被关闭，之后再读写记忆会报错。PostgresSaver 对象内部持有连接 conn，还有序列化器、线程锁和 setup、put、get_tuple 等方法。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+    <style>
+      text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+      .title{font-size:30px;font-weight:700}
+      .sub{font-size:17px;fill:#52677e}
+      .label{font-size:19px;font-weight:650}
+      .step{font-size:18px;font-weight:700;fill:#1d5fa8}
+      .body{font-size:16px}
+      .small{font-size:15px;fill:#52677e}
+      .code{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:13px}
+      .cmt{fill:#7a8797}
+      .mark{font-size:16px;font-weight:700;fill:#1d5fa8}
+      .bad{fill:#b42318;font-weight:700}
+      .hl{fill:#9a5b00;font-weight:700}
+      .panel{fill:#ffffff;stroke:#dce4ee}
+      .codebox{fill:#f4f6f9;stroke:#d5dde7;stroke-width:1.4}
+      .with{fill:#eef5ff;stroke:#bad2f1;stroke-width:1.4}
+      .obj{fill:#eef5ff;stroke:#8fb4e3;stroke-width:1.6}
+      .conn{fill:#fff5e4;stroke:#e8c58a;stroke-width:1.6}
+      .arrow{fill:none;stroke:#64748b;stroke-width:2;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1160" height="770" rx="20" fill="#f6f8fc"/>
+  <text x="36" y="51" class="title">from_conn_string 返回的是什么</text>
+  <text x="36" y="82" class="sub">返回一个“上下文管理器”。with 打开它后，as 拿到的是 PostgresSaver 对象，数据库连接装在这个对象里面</text>
+
+  <!-- 左上：你的代码 -->
+  <rect x="32" y="108" width="580" height="312" rx="16" class="panel"/>
+  <text x="52" y="140" class="label">你的代码</text>
+  <rect x="52" y="156" width="540" height="160" rx="10" class="with"/>
+  <text xml:space="preserve" x="66" y="184" class="code">with PostgresSaver.from_conn_string(DB_URL) as checkpointer:</text>
+  <text xml:space="preserve" x="66" y="214" class="code">    checkpointer.setup()</text>
+  <text xml:space="preserve" x="66" y="244" class="code">    agent = create_agent(model=model, checkpointer=checkpointer)</text>
+  <text xml:space="preserve" x="66" y="274" class="code">    agent.invoke({"messages": [...]}, config)</text>
+  <text xml:space="preserve" x="66" y="302" class="code cmt">    # …… with 块内都可以读写记忆</text>
+  <text xml:space="preserve" x="66" y="350" class="code cmt"># with 块结束</text>
+  <text xml:space="preserve" x="66" y="386" class="code">agent.invoke({"messages": [...]}, config)  <tspan class="bad">✕ 报错</tspan></text>
+  <text x="600" y="184" class="mark" text-anchor="end">①②</text>
+  <text x="600" y="244" class="mark" text-anchor="end">③</text>
+  <text x="600" y="350" class="mark" text-anchor="end">④</text>
+
+  <!-- 右上：发生了什么 -->
+  <rect x="632" y="108" width="496" height="312" rx="16" class="panel"/>
+  <text x="652" y="140" class="label">每一步发生了什么</text>
+  <text x="652" y="176" class="step">① 调用 from_conn_string(DB_URL)</text>
+  <text x="652" y="200" class="small">只创建一个上下文管理器，还没有连接数据库</text>
+  <text x="652" y="236" class="step">② 进入 with</text>
+  <text x="652" y="260" class="small">打开数据库连接，用它创建 PostgresSaver 对象，</text>
+  <text x="652" y="282" class="small">交给 as 后面的变量 checkpointer</text>
+  <text x="652" y="318" class="step">③ with 内部</text>
+  <text x="652" y="342" class="small">建表、读写检查点的 SQL 都通过这个连接执行</text>
+  <text x="652" y="378" class="step">④ 离开 with（正常结束或报错都一样）</text>
+  <text x="652" y="402" class="small">连接自动关闭。变量还在，但再读写记忆就会报错</text>
+
+  <!-- 左下：源码 -->
+  <rect x="32" y="440" width="580" height="260" rx="16" class="panel"/>
+  <text x="52" y="472" class="label">from_conn_string 的源码（简化）</text>
+  <rect x="52" y="488" width="540" height="194" rx="10" class="codebox"/>
+  <text xml:space="preserve" x="66" y="514" class="code">@classmethod</text>
+  <text xml:space="preserve" x="66" y="538" class="code">@contextmanager</text>
+  <text xml:space="preserve" x="66" y="562" class="code">def from_conn_string(cls, conn_string, *, pipeline=False):</text>
+  <text xml:space="preserve" x="66" y="586" class="code">    with Connection.connect(conn_string, <tspan class="hl">autocommit=True,</tspan></text>
+  <text xml:space="preserve" x="66" y="610" class="code">            prepare_threshold=0, <tspan class="hl">row_factory=dict_row</tspan>) as conn:</text>
+  <text xml:space="preserve" x="66" y="634" class="code">        yield cls(conn)  <tspan class="cmt"># ← as 拿到的就是它</tspan></text>
+  <text xml:space="preserve" x="66" y="662" class="code cmt">    # 外面的 with 结束后，回到这里：内层 with 结束，连接关闭</text>
+
+
+  <!-- 右下：对象结构 -->
+  <rect x="632" y="440" width="496" height="260" rx="16" class="panel"/>
+  <text x="652" y="472" class="label">checkpointer 里有什么</text>
+  <rect x="652" y="488" width="456" height="194" rx="12" class="obj"/>
+  <text x="670" y="516" class="label">PostgresSaver 对象</text>
+  <rect x="670" y="530" width="420" height="58" rx="9" class="conn"/>
+  <text x="686" y="556" class="body"><tspan class="hl">conn</tspan>：数据库连接（psycopg.Connection）</text>
+  <text x="686" y="578" class="small">from_conn_string 打开的就是它</text>
+  <text x="670" y="614" class="body">serde：序列化器（state ⇄ 字节）　lock：线程锁</text>
+  <text x="670" y="642" class="body">方法：setup()、put()、get_tuple()、list()、</text>
+  <text x="670" y="666" class="body">　　　put_writes()、delete_thread() ……</text>
+
+  <path d="M 404 628 C 500 640, 590 630, 648 604" class="arrow"/>
+
+  <text x="36" y="738" class="body">SqliteSaver.from_conn_string(路径) 同理：进入 with 时执行 sqlite3.connect(路径, check_same_thread=False)，离开时关闭连接。</text>
+</svg>
