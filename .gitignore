@@ -23,3 +23,6 @@ todo_workspace/
 Chapter08_Middleware/temp.py
 Chapter08_Middleware/fake_deepseek.py
 Chapter08_Middleware/call_times_with_jitter.txt
+
+# Chapter09_memory runtime data (sqlite checkpoint DBs)
+Chapter09_memory/data/

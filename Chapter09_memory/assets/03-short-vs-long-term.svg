@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="810" viewBox="0 0 1160 810" role="img" aria-labelledby="title desc">
+  <title id="title">短期记忆按 thread 隔离，长期记忆按 namespace 跨 thread 共享</title>
+  <desc id="desc">左侧是短期记忆：checkpointer 为每个 thread_id 保存一份独立的消息列表。小明有 t1、t2 两个会话，小红有 t3。t2 看不到 t1 的消息。右侧是长期记忆：store 按 namespace 组织，小明的命名空间里有 profile 和 plan 两条记忆，t1、t2 都能读写；小红的命名空间由 t3 读写。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#c98a1b"/></marker>
+    <style>
+      text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+      .title{font-size:30px;font-weight:700}
+      .sub{font-size:17px;fill:#52677e}
+      .label{font-size:19px;font-weight:650}
+      .body{font-size:17px}
+      .small{font-size:15px;fill:#52677e}
+      .code{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:15px}
+      .note-short{font-size:15px;fill:#1d5fa8;font-weight:600}
+      .note-bad{font-size:15px;fill:#b42318;font-weight:600}
+      .note-long{font-size:15px;fill:#9a5b00;font-weight:600}
+      .rw{font-size:15px;fill:#9a5b00;font-weight:600}
+      .link{fill:none;stroke:#c98a1b;stroke-width:2.2;marker-start:url(#arrow);marker-end:url(#arrow)}
+      .panel{fill:#ffffff;stroke:#dce4ee}
+      .short{fill:#eef5ff;stroke:#bad2f1;stroke-width:1.5}
+      .long{fill:#fff5e4;stroke:#e8c58a;stroke-width:1.5}
+      .item{fill:#ffffff;stroke:#e8c58a;stroke-width:1.2}
+    </style>
+  </defs>
+  <rect width="1160" height="810" rx="20" fill="#f6f8fc"/>
+  <text x="36" y="51" class="title">短期记忆 vs 长期记忆</text>
+  <text x="36" y="82" class="sub">两个用户、三个会话 · 短期记忆按 thread 隔离，长期记忆按 namespace 组织、跨 thread 共享</text>
+
+  <!-- 左：短期记忆 -->
+  <rect x="32" y="108" width="648" height="592" rx="16" class="panel"/>
+  <text x="52" y="140" class="label">短期记忆 · checkpointer · 以 thread_id 区分</text>
+  <text x="52" y="166" class="small">每个 thread 保存一份独立的 state（主要是消息列表）</text>
+
+  <rect x="52" y="186" width="608" height="150" rx="12" class="short"/>
+  <text x="72" y="216" class="label">小明 · thread_id = "t1"</text>
+  <text x="640" y="216" class="small" text-anchor="end">话题：周末出游</text>
+  <text x="72" y="246" class="body">Human「我叫小明，周末想去成都玩」</text>
+  <text x="72" y="272" class="body">AI「好的小明，成都推荐……」</text>
+  <text x="72" y="298" class="body">Human「那边有什么好吃的？」</text>
+  <text x="72" y="324" class="note-short">同一个 thread 再次 invoke，上面的消息自动接上</text>
+
+  <rect x="52" y="356" width="608" height="150" rx="12" class="short"/>
+  <text x="72" y="386" class="label">小明 · thread_id = "t2"</text>
+  <text x="640" y="386" class="small" text-anchor="end">话题：学 Python</text>
+  <text x="72" y="416" class="body">Human「帮我解释一下这段代码」</text>
+  <text x="72" y="442" class="body">AI「这段代码的作用是……」</text>
+  <text x="72" y="470" class="note-bad">看不到 t1 的消息</text>
+  <text x="72" y="494" class="note-long">但能从 store 读到“周末去成都”</text>
+
+  <rect x="52" y="526" width="608" height="150" rx="12" class="short"/>
+  <text x="72" y="556" class="label">小红 · thread_id = "t3"</text>
+  <text x="640" y="556" class="small" text-anchor="end">话题：学吉他</text>
+  <text x="72" y="586" class="body">Human「我是小红，刚开始学吉他」</text>
+  <text x="72" y="612" class="body">AI「欢迎小红！可以先从和弦练起……」</text>
+  <text x="72" y="640" class="note-short">只属于小红的这个会话</text>
+
+  <!-- 右：长期记忆 -->
+  <rect x="760" y="108" width="368" height="592" rx="16" class="panel"/>
+  <text x="780" y="140" class="label">长期记忆 · store</text>
+  <text x="780" y="166" class="small">按 namespace + key 组织</text>
+
+  <rect x="780" y="186" width="328" height="320" rx="12" class="long"/>
+  <text x="798" y="212" class="small">namespace</text>
+  <text x="798" y="236" class="code">("users", "xiaoming")</text>
+  <rect x="796" y="254" width="296" height="98" rx="8" class="item"/>
+  <text x="812" y="280" class="small">key = "profile"</text>
+  <text x="812" y="306" class="code">{"name": "小明",</text>
+  <text x="812" y="330" class="code"> "lang": "Python"}</text>
+  <rect x="796" y="368" width="296" height="122" rx="8" class="item"/>
+  <text x="812" y="394" class="small">key = "plan"</text>
+  <text x="812" y="420" class="code">{"weekend": "去成都"}</text>
+  <text x="812" y="452" class="note-long">在 t1 中提炼并写入，</text>
+  <text x="812" y="476" class="note-long">t2 也能读到</text>
+
+  <rect x="780" y="526" width="328" height="162" rx="12" class="long"/>
+  <text x="798" y="552" class="small">namespace</text>
+  <text x="798" y="576" class="code">("users", "xiaohong")</text>
+  <rect x="796" y="590" width="296" height="86" rx="8" class="item"/>
+  <text x="812" y="616" class="small">key = "profile"</text>
+  <text x="812" y="640" class="code">{"name": "小红",</text>
+  <text x="812" y="664" class="code"> "hobby": "吉他"}</text>
+
+  <!-- 读写连线 -->
+  <path d="M 672 261 L 768 300" class="link"/>
+  <text x="716" y="254" class="rw" text-anchor="middle">读 / 写</text>
+  <path d="M 672 431 L 768 410" class="link"/>
+  <text x="718" y="408" class="rw" text-anchor="middle">读 / 写</text>
+  <path d="M 672 601 L 768 601" class="link"/>
+  <text x="718" y="590" class="rw" text-anchor="middle">读 / 写</text>
+
+  <text x="36" y="742" class="body">短期记忆：框架自动保存、自动加载。换一个 thread_id 就是新对话，旧 thread 的消息仍然保存着，切回去可以接着聊。</text>
+  <text x="36" y="772" class="body">长期记忆：存什么、什么时候读写由你决定（在工具或中间件里调用 store）。读写哪个 namespace，通常由 context 中的 user_id 决定。</text>
+</svg>
