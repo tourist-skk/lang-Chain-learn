@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="800" viewBox="0 0 1160 800" role="img" aria-labelledby="title desc">
+  <title id="title">Agent 使用长期记忆的五个步骤</title>
+  <desc id="desc">第一步 create_agent 时传入 store。第一个会话：invoke 传入消息“我是小花”和 user_id；model 节点里模型只看到 name 参数，生成 save_user_info(name="小花")；tools 节点注入 runtime，工具执行 runtime.store.put(("users",), "user-1", {"name": "小花"}) 写入 store。第二个会话：invoke 传入“我是谁”和同一个 user_id；模型生成没有参数的 get_user_info()；tools 节点注入 runtime，工具执行 runtime.store.get 读出 {"name": "小花"}。两次 invoke 不共享消息，第二次能答出小花全靠 store。</desc>
+  <defs>
+    <marker id="tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8a9bb0"/></marker>
+    <marker id="tipS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#c98a1b"/></marker>
+    <style>
+      text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+      .title{font-size:30px;font-weight:700}
+      .sub{font-size:16px;fill:#52677e}
+      .label{font-size:18px;font-weight:650}
+      .body{font-size:15px}
+      .small{font-size:13.5px;fill:#52677e}
+      .code{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:13.5px}
+      .tag{font-size:13px;font-weight:700}
+      .panel{fill:#ffffff;stroke:#dce4ee}
+      .step1{fill:#eef3fa;stroke:#9fb3cc;stroke-width:1.4}
+      .inp{fill:#f6f8fc;stroke:#c9d5e3;stroke-width:1.2}
+      .mdl{fill:#f4f0fb;stroke:#cfc2e8;stroke-width:1.2}
+      .tls{fill:#e9f7ef;stroke:#9fd3b3;stroke-width:1.2}
+      .store{fill:#fff5e4;stroke:#e8c58a;stroke-width:1.6}
+      .line{fill:none;stroke:#8a9bb0;stroke-width:1.6}
+      .sline{fill:none;stroke:#c98a1b;stroke-width:2.2}
+      .t-inp{fill:#2c4f78}
+      .t-mdl{fill:#6b4fa0}
+      .t-tls{fill:#1f7a4a}
+      .t-sto{fill:#9a5b00}
+    </style>
+  </defs>
+  <rect width="1160" height="800" rx="20" fill="#f6f8fc"/>
+  <text x="36" y="51" class="title">Agent 使用长期记忆的五个步骤</text>
+  <text x="36" y="80" class="sub">以 3.3.1 的例子为例：两次 invoke 是两个互不相干的会话，“小花”这条信息只靠 store 传过去</text>
+
+  <!-- 第一步 -->
+  <rect x="32" y="100" width="1096" height="72" rx="12" class="step1"/>
+  <text x="52" y="128" class="tag t-inp">第一步 · 把 store 交给 Agent</text>
+  <text x="52" y="156" class="code">agent = create_agent(model, tools=[save_user_info, get_user_info], store=store, state_schema=CustomState)</text>
+
+  <!-- ===== 会话 1 ===== -->
+  <text x="36" y="204" class="label">第一个会话：response1 = agent.invoke(...)</text>
+  <rect x="32" y="216" width="236" height="160" rx="12" class="inp"/>
+  <text x="48" y="242" class="tag t-inp">第二步 · 传入 user_id</text>
+  <text x="48" y="272" class="code">messages: ["我是小花"]</text>
+  <text x="48" y="296" class="code">user_id:  "user-1"</text>
+  <text x="48" y="330" class="small">两个键都进入 state</text>
+  <text x="48" y="352" class="small">（CustomState 定义了 user_id）</text>
+  <path d="M 268 296 L 286 296" class="line" marker-end="url(#tip)"/>
+
+  <rect x="290" y="216" width="254" height="160" rx="12" class="mdl"/>
+  <text x="306" y="242" class="tag t-mdl">第三步 · model 节点</text>
+  <text x="306" y="268" class="small">模型只看到 name 这一个参数</text>
+  <text x="306" y="298" class="code">AIMessage.tool_calls:</text>
+  <text x="322" y="320" class="code">save_user_info(</text>
+  <text x="338" y="342" class="code">name="小花")</text>
+  <path d="M 544 296 L 562 296" class="line" marker-end="url(#tip)"/>
+
+  <rect x="566" y="216" width="320" height="160" rx="12" class="tls"/>
+  <text x="582" y="242" class="tag t-tls">第四步 · tools 节点</text>
+  <text x="582" y="268" class="small">新建 ToolRuntime，补进参数再调用工具</text>
+  <text x="582" y="296" class="code">save_user_info(name="小花",</text>
+  <text x="703" y="316" class="code">runtime=…)</text>
+  <text x="582" y="344" class="code">runtime.store.put(("users",),</text>
+  <text x="598" y="364" class="code">"user-1", {"name": "小花"})</text>
+
+  <text x="36" y="402" class="small">工具返回 ToolMessage("saved")，回到 model 节点，模型回复“已经记住啦，小花！”</text>
+
+  <!-- ===== 会话 2 ===== -->
+  <text x="36" y="452" class="label">第二个会话：response2 = agent.invoke(...)</text>
+  <rect x="32" y="464" width="236" height="160" rx="12" class="inp"/>
+  <text x="48" y="490" class="tag t-inp">第二步 · 传入 user_id</text>
+  <text x="48" y="520" class="code">messages: ["我是谁"]</text>
+  <text x="48" y="544" class="code">user_id:  "user-1"</text>
+  <text x="48" y="578" class="small">消息里没有“小花”，</text>
+  <text x="48" y="600" class="small">但 user_id 相同</text>
+  <path d="M 268 544 L 286 544" class="line" marker-end="url(#tip)"/>
+
+  <rect x="290" y="464" width="254" height="160" rx="12" class="mdl"/>
+  <text x="306" y="490" class="tag t-mdl">第三步 · model 节点</text>
+  <text x="306" y="516" class="small">get_user_info 没有可填的参数</text>
+  <text x="306" y="546" class="code">AIMessage.tool_calls:</text>
+  <text x="322" y="568" class="code">get_user_info()</text>
+  <path d="M 544 544 L 562 544" class="line" marker-end="url(#tip)"/>
+
+  <rect x="566" y="464" width="320" height="160" rx="12" class="tls"/>
+  <text x="582" y="490" class="tag t-tls">第四步 · tools 节点</text>
+  <text x="582" y="516" class="small">同样注入 runtime</text>
+  <text x="582" y="544" class="code">get_user_info(runtime=…)</text>
+  <text x="582" y="572" class="code">runtime.store.get(("users",),</text>
+  <text x="728" y="592" class="code">"user-1")</text>
+  <text x="582" y="614" class="code">→ {"name": "小花"}</text>
+
+  <text x="36" y="650" class="small">工具返回 ToolMessage("{'name': '小花'}")，回到 model 节点，模型回答“你是小花”</text>
+
+  <!-- ===== store ===== -->
+  <rect x="924" y="216" width="204" height="408" rx="14" class="store"/>
+  <text x="1026" y="248" class="label t-sto" text-anchor="middle">store</text>
+  <text x="1026" y="272" class="small" text-anchor="middle">create_agent 传入的</text>
+  <text x="1026" y="292" class="small" text-anchor="middle">同一个对象</text>
+  <rect x="940" y="380" width="172" height="96" rx="10" fill="#ffffff" stroke="#e8c58a"/>
+  <text x="952" y="404" class="code">ns : ("users",)</text>
+  <text x="952" y="428" class="code">key: "user-1"</text>
+  <text x="952" y="452" class="code">value:</text>
+  <text x="960" y="470" class="code">{"name": "小花"}</text>
+
+  <path d="M 886 344 C 906 344, 950 344, 990 378" class="sline" marker-end="url(#tipS)"/>
+  <text x="900" y="334" class="tag t-sto">put</text>
+  <path d="M 990 478 C 950 540, 910 572, 890 572" class="sline" marker-end="url(#tipS)"/>
+  <text x="900" y="532" class="tag t-sto">get</text>
+
+  <!-- 第五步 -->
+  <rect x="32" y="672" width="1096" height="104" rx="12" class="panel"/>
+  <text x="52" y="700" class="tag t-sto">第五步 · 跨会话读取</text>
+  <text x="52" y="728" class="body">两次 invoke 都没有 checkpointer 和 thread_id，第二次 invoke 看不到第一次的任何消息（没有短期记忆）。</text>
+  <text x="52" y="754" class="body">它能答出“小花”，是因为两次用的是同一个 store、同一个 namespace + key。这就是长期记忆：按 namespace + key 存，任何会话都能读。</text>
+</svg>

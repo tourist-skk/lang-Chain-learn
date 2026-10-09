@@ -1,0 +1,124 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="970" viewBox="0 0 1160 970" role="img" aria-labelledby="title desc">
+  <title id="title">语义搜索的原理：把文本变成向量，再比较向量的方向</title>
+  <desc id="desc">左侧是二维示意图：横轴代表运动，纵轴代表食物。query“有氧锻炼”的箭头和“我每天早上去跑步”方向最接近，余弦相似度 0.96；“运动完来串糖葫芦”0.83；“我爱吃奶皮子酸奶”0.38。右侧是 store 中的两个阶段：put 时按 fields 取出文本，用 embed 算成 1024 个数的向量存进 _vectors；search 时用同一个 embed 把 query 算成向量，和每条记忆的向量算余弦相似度，按分数从高到低返回。底部是真实模型 Qwen3-VL-Embedding-2B 的打分：有氧锻炼与跑步 0.534 最高，与糖葫芦 0.478，与计算机组成原理 0.425，与酸奶 0.354。</desc>
+  <defs>
+    <marker id="tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8a9bb0"/></marker>
+    <marker id="tipQ" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#c2410c"/></marker>
+    <marker id="tipM" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2c4f78"/></marker>
+    <style>
+      text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+      .title{font-size:30px;font-weight:700}
+      .sub{font-size:17px;fill:#52677e}
+      .label{font-size:19px;font-weight:650}
+      .body{font-size:16px}
+      .small{font-size:14px;fill:#52677e}
+      .code{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:14.5px}
+      .q{fill:#c2410c;font-weight:700}
+      .m{fill:#2c4f78}
+      .score{font-weight:700}
+      .panel{fill:#ffffff;stroke:#dce4ee}
+      .box{fill:#f6f8fc;stroke:#c9d5e3;stroke-width:1.2}
+      .vec{fill:#f4f0fb;stroke:#cfc2e8;stroke-width:1.2}
+      .qbox{fill:#fff1e8;stroke:#f3b48c;stroke-width:1.2}
+      .axis{stroke:#9aa5b1;stroke-width:1.5;fill:none}
+      .line{fill:none;stroke:#8a9bb0;stroke-width:1.6}
+      .arrQ{stroke:#c2410c;stroke-width:3.2;fill:none;marker-end:url(#tipQ)}
+      .arrM{stroke:#2c4f78;stroke-width:2.6;fill:none;marker-end:url(#tipM)}
+      .bar{fill:#2c4f78}
+      .barbg{fill:#eef3fa}
+    </style>
+  </defs>
+  <rect width="1160" height="970" rx="20" fill="#f6f8fc"/>
+  <text x="36" y="51" class="title">语义搜索的原理</text>
+  <text x="36" y="82" class="sub">嵌入模型把文本变成向量（一串数字）：意思相近的文本，向量的方向也相近。检索 = 比较 query 和记忆的向量方向</text>
+
+  <!-- ============ 左：二维示意 ============ -->
+  <rect x="32" y="106" width="608" height="560" rx="16" class="panel"/>
+  <text x="52" y="138" class="label">示意：假设向量只有 2 维</text>
+
+  <path d="M 90 590 L 600 590" class="axis" marker-end="url(#tip)"/>
+  <path d="M 90 590 L 90 160" class="axis" marker-end="url(#tip)"/>
+  <text x="598" y="614" class="small" text-anchor="end">第 1 维：和“运动”多相关</text>
+  <text x="102" y="170" class="small">第 2 维：和“食物”多相关</text>
+
+  <!-- 夹角 -->
+  <path d="M 174.9 560 A 90 90 0 0 0 143.2 517.4" fill="none" stroke="#c2410c" stroke-width="1.4" stroke-dasharray="4 3"/>
+  <text x="180" y="532" class="small" style="fill:#c2410c">夹角</text>
+
+  <!-- 记忆向量 -->
+  <path d="M 90 590 L 489 569" class="arrM"/>
+  <path d="M 90 590 L 321 275" class="arrM"/>
+  <path d="M 90 590 L 111 191" class="arrM"/>
+  <!-- query 向量 -->
+  <path d="M 90 590 L 447 464" class="arrQ"/>
+
+  <text x="457" y="458" class="body q">query：有氧锻炼</text>
+  <text x="292" y="562" class="body m">A 我每天早上去跑步 <tspan class="score">0.96</tspan></text>
+  <text x="331" y="272" class="body m">C 运动完来串糖葫芦 <tspan class="score">0.83</tspan></text>
+  <text x="121" y="196" class="body m">B 我爱吃奶皮子酸奶 <tspan class="score">0.38</tspan></text>
+
+  <text x="52" y="632" class="small">数字是余弦相似度：两支箭头夹角的余弦，0° → 1，90° → 0，只看方向不看长短。</text>
+  <text x="52" y="654" class="small">真实向量有 1024 维，每一维也没有“运动”“食物”这样的可读含义，但比较方向的道理一样。</text>
+
+  <!-- ============ 右：store 里的两步 ============ -->
+  <rect x="656" y="106" width="472" height="560" rx="16" class="panel"/>
+  <text x="676" y="138" class="label">在 store 里分两步</text>
+
+  <text x="676" y="172" class="body" font-weight="650">① put 时：给记忆算向量，存起来</text>
+  <rect x="676" y="184" width="432" height="34" rx="8" class="box"/>
+  <text x="690" y="206" class="code">value = {"text": "我每天早上去跑步"}</text>
+  <path d="M 700 218 L 700 240" class="line" marker-end="url(#tip)"/>
+  <text x="714" y="235" class="small">按 fields=["text"] 从 value 里取出文本</text>
+  <rect x="676" y="244" width="432" height="34" rx="8" class="box"/>
+  <text x="690" y="266" class="code">"我每天早上去跑步"</text>
+  <path d="M 700 278 L 700 300" class="line" marker-end="url(#tip)"/>
+  <text x="714" y="295" class="small">embed（嵌入模型）</text>
+  <rect x="676" y="304" width="432" height="34" rx="8" class="vec"/>
+  <text x="690" y="326" class="code">[-0.0003, -0.0068, 0.0422, …]</text>
+  <text x="1094" y="326" class="small" text-anchor="end">1024 个数</text>
+  <path d="M 700 338 L 700 360" class="line" marker-end="url(#tip)"/>
+  <text x="714" y="355" class="small">按字段名存进</text>
+  <rect x="676" y="364" width="432" height="34" rx="8" class="vec"/>
+  <text x="690" y="386" class="code">_vectors[namespace][key]["text"]</text>
+
+  <text x="676" y="438" class="body" font-weight="650">② search 时：给 query 算向量，再逐个比较</text>
+  <rect x="676" y="450" width="432" height="34" rx="8" class="qbox"/>
+  <text x="690" y="472" class="code">search(("users",), query="有氧锻炼")</text>
+  <path d="M 700 484 L 700 506" class="line" marker-end="url(#tip)"/>
+  <text x="714" y="501" class="small">同一个 embed，也得到 1024 个数</text>
+  <rect x="676" y="510" width="432" height="34" rx="8" class="qbox"/>
+  <text x="690" y="532" class="code">query 向量 [ … ]</text>
+  <path d="M 700 544 L 700 566" class="line" marker-end="url(#tip)"/>
+  <text x="714" y="561" class="small">和每条记忆的每个向量算余弦相似度</text>
+  <rect x="676" y="570" width="432" height="76" rx="8" class="box"/>
+  <text x="690" y="594" class="body">按分数从高到低返回 SearchItem</text>
+  <text x="690" y="618" class="small">分数写在 item.score；一条记忆有多个向量时</text>
+  <text x="690" y="638" class="small">（fields 有多个），取其中最高的分数</text>
+
+  <!-- ============ 底：真实模型 ============ -->
+  <rect x="32" y="682" width="1096" height="266" rx="16" class="panel"/>
+  <text x="52" y="714" class="label">真实模型的打分（Qwen3-VL-Embedding-2B，1024 维）</text>
+  <text x="52" y="740" class="small">query = “有氧锻炼”，和下面四条记忆分别算余弦相似度</text>
+
+  <text x="52" y="782" class="body">我每天早上去跑步</text>
+  <rect x="300" y="766" width="600" height="22" rx="5" class="barbg"/>
+  <rect x="300" y="766" width="320.4" height="22" rx="5" class="bar"/>
+  <text x="632" y="783" class="body score">0.534</text>
+
+  <text x="52" y="820" class="body">运动完来串糖葫芦</text>
+  <rect x="300" y="804" width="600" height="22" rx="5" class="barbg"/>
+  <rect x="300" y="804" width="286.8" height="22" rx="5" class="bar" opacity="0.8"/>
+  <text x="598" y="821" class="body score">0.478</text>
+
+  <text x="52" y="858" class="body">最近在学计算机组成原理</text>
+  <rect x="300" y="842" width="600" height="22" rx="5" class="barbg"/>
+  <rect x="300" y="842" width="255" height="22" rx="5" class="bar" opacity="0.6"/>
+  <text x="567" y="859" class="body score">0.425</text>
+
+  <text x="52" y="896" class="body">我爱吃奶皮子酸奶</text>
+  <rect x="300" y="880" width="600" height="22" rx="5" class="barbg"/>
+  <rect x="300" y="880" width="212.4" height="22" rx="5" class="bar" opacity="0.45"/>
+  <text x="524" y="897" class="body score">0.354</text>
+
+  <text x="52" y="932" class="small">“有氧锻炼”和“跑步”一个字都不同，仍然排第一，这就是语义检索和 filter（字面相等）的区别。真实分数挤在 0.35～0.55 之间，只有相对高低有意义。</text>
+</svg>

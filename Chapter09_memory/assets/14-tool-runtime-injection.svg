@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="700" viewBox="0 0 1160 700" role="img" aria-labelledby="title desc">
+  <title id="title">为什么 AIMessage 的工具参数里没有 runtime</title>
+  <desc id="desc">工具 save_user_info(name, runtime) 生成两份参数说明：tool_call_schema 去掉了注入参数 runtime，只含 name，发给模型；args_schema 包含 name 和 runtime，执行时用来校验。模型只能生成 AIMessage.tool_calls 的 args 为 {"name": "小花"}，它保存在 messages 里不再修改。tools 节点（ToolNode）新建 ToolRuntime，复制一份 args，删掉模型填的同名参数，再加入真正的 runtime，最后调用 tool.invoke。</desc>
+  <defs>
+    <marker id="tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8a9bb0"/></marker>
+    <style>
+      text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+      .title{font-size:30px;font-weight:700}
+      .sub{font-size:16px;fill:#52677e}
+      .label{font-size:18px;font-weight:650}
+      .body{font-size:15px}
+      .small{font-size:13.5px;fill:#52677e}
+      .code{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:13.5px}
+      .code-b{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:15px;font-weight:700}
+      .fn{fill:#17304b}
+      .toModel{fill:#f4f0fb;stroke:#cfc2e8;stroke-width:1.4}
+      .full{fill:#eef3fa;stroke:#9fb3cc;stroke-width:1.4}
+      .msg{fill:#ffffff;stroke:#dce4ee;stroke-width:1.2}
+      .node{fill:#e9f7ef;stroke:#9fd3b3;stroke-width:1.4}
+      .stepbox{fill:#ffffff;stroke:#c7e6d3;stroke-width:1}
+      .line{fill:none;stroke:#8a9bb0;stroke-width:1.6}
+      .strike{stroke:#b42318;stroke-width:1.6}
+      .t-red{fill:#b42318;font-weight:600}
+      .t-green{fill:#1f7a4a;font-weight:650}
+      .t-purple{fill:#6b4fa0;font-weight:650}
+      .t-blue{fill:#2c4f78;font-weight:650}
+    </style>
+  </defs>
+  <rect width="1160" height="700" rx="20" fill="#f6f8fc"/>
+  <text x="36" y="51" class="title">为什么 AIMessage 的工具参数里没有 runtime</text>
+  <text x="36" y="80" class="sub">runtime 不是模型填写的参数：发给模型时被去掉，执行工具前由 tools 节点补进去</text>
+
+  <!-- 工具定义 -->
+  <rect x="300" y="100" width="560" height="74" rx="12" fill="#17304b"/>
+  <text x="580" y="132" class="code-b" text-anchor="middle" style="fill:#ffffff">save_user_info(name: str, runtime: ToolRuntime)</text>
+  <text x="580" y="158" class="small" text-anchor="middle" style="fill:#c9d5e3">ToolRuntime 继承自 _DirectlyInjectedToolArg，被认定为“注入参数”</text>
+
+  <path d="M 420 174 L 220 208" class="line" marker-end="url(#tip)"/>
+  <path d="M 740 174 L 940 208" class="line" marker-end="url(#tip)"/>
+
+  <!-- tool_call_schema -->
+  <rect x="32" y="212" width="400" height="150" rx="12" class="toModel"/>
+  <text x="52" y="240" class="label t-purple">tool_call_schema → 发给模型</text>
+  <text x="52" y="270" class="code">{"name": "save_user_info",</text>
+  <text x="60" y="292" class="code">"parameters": {"name": string}}</text>
+  <text x="52" y="324" class="small">遍历参数时用 _is_injected_arg_type 判断，</text>
+  <text x="52" y="346" class="small">runtime 被过滤掉，docstring 里它的说明也不发</text>
+
+  <!-- args_schema -->
+  <rect x="728" y="212" width="400" height="150" rx="12" class="full"/>
+  <text x="748" y="240" class="label t-blue">args_schema → 执行时校验参数</text>
+  <text x="748" y="270" class="code">name:    str</text>
+  <text x="748" y="292" class="code">runtime: ToolRuntime</text>
+  <text x="748" y="324" class="small">函数的全部参数，tool.invoke 时</text>
+  <text x="748" y="346" class="small">用它检查传进来的参数是否齐全</text>
+
+  <!-- 模型输出 -->
+  <path d="M 232 362 L 232 396" class="line" marker-end="url(#tip)"/>
+  <rect x="32" y="400" width="400" height="128" rx="12" class="msg"/>
+  <text x="52" y="428" class="label">模型 → AIMessage</text>
+  <text x="52" y="458" class="code">tool_calls[0]["args"]</text>
+  <text x="68" y="480" class="code">= {"name": "小花"}</text>
+  <text x="52" y="512" class="small">只能生成见过的参数；保存在 messages 里，之后不再修改</text>
+  <path d="M 432 464 L 466 464" class="line" marker-end="url(#tip)"/>
+
+  <!-- ToolNode -->
+  <rect x="470" y="400" width="658" height="276" rx="12" class="node"/>
+  <text x="490" y="428" class="label t-green">tools 节点（ToolNode）执行这个工具调用</text>
+
+  <rect x="486" y="442" width="594" height="44" rx="8" class="stepbox"/>
+  <text x="500" y="469" class="code">① ToolRuntime(state=…, store=…, context=…, config=…, tool_call_id=…)</text>
+
+  <rect x="486" y="494" width="594" height="58" rx="8" class="stepbox"/>
+  <text x="500" y="518" class="code">② 复制一份 args，删掉模型填的同名参数</text>
+  <text x="500" y="540" class="small">源码注释：防止 LLM 伪造这些隐藏参数；messages 里的 AIMessage 不受影响</text>
+
+  <rect x="486" y="560" width="594" height="44" rx="8" class="stepbox"/>
+  <text x="500" y="587" class="code">③ args = {"name": "小花", "runtime": ToolRuntime(...)}</text>
+
+  <rect x="486" y="612" width="594" height="48" rx="8" class="stepbox"/>
+  <text x="500" y="641" class="code">④ tool.invoke(args)  →  save_user_info(name="小花", runtime=...)</text>
+
+  <path d="M 1104 362 L 1104 636 L 1084 636" class="line" stroke-dasharray="5 4" marker-end="url(#tip)"/>
+  <text x="1092" y="392" class="small" text-anchor="end">按 args_schema 校验</text>
+</svg>

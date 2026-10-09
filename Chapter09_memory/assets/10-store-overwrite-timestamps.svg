@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="720" viewBox="0 0 1160 720" role="img" aria-labelledby="title desc">
+  <title id="title">对同一个 key 写两次：三种 store 如何处理旧数据和时间戳</title>
+  <desc id="desc">10:00 写入小明，10:05 对同一个 key 写入小红。InMemoryStore 把字典里的旧 Item 换成新 Item，created_at 变成 10:05；SqliteStore 用 INSERT OR REPLACE 删除 rowid 为 1 的旧行、插入 rowid 为 2 的新行，created_at 变成 10:05；PostgresStore 用 ON CONFLICT DO UPDATE 在原行上更新 value 和 updated_at，created_at 仍是 10:00。</desc>
+  <defs>
+    <marker id="tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8a9bb0"/></marker>
+    <style>
+      text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+      .title{font-size:30px;font-weight:700}
+      .sub{font-size:17px;fill:#52677e}
+      .label{font-size:19px;font-weight:650}
+      .colhead{font-size:16px;font-weight:650;fill:#52677e}
+      .body{font-size:16px}
+      .small{font-size:14px;fill:#52677e}
+      .code{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:14.5px}
+      .code-b{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:14.5px;font-weight:700}
+      .panel{fill:#ffffff;stroke:#dce4ee}
+      .card{fill:#f6f8fc;stroke:#c9d5e3;stroke-width:1.3}
+      .card-new{fill:#fff5e4;stroke:#e8c58a;stroke-width:1.3}
+      .card-dead{fill:#f3f3f3;stroke:#cccccc;stroke-width:1.2;stroke-dasharray:5 4}
+      .dead{fill:#9aa5b1}
+      .chg{fill:#9a5b00;font-weight:700}
+      .kept{fill:#1f7a4a;font-weight:700}
+      .reset{fill:#fdecec;stroke:#efb3b3;stroke-width:1.4}
+      .keep{fill:#e9f7ef;stroke:#9fd3b3;stroke-width:1.4}
+      .big-reset{font-size:22px;font-weight:700;fill:#b42318}
+      .big-keep{font-size:22px;font-weight:700;fill:#1f7a4a}
+      .line{fill:none;stroke:#8a9bb0;stroke-width:1.8}
+    </style>
+  </defs>
+  <rect width="1160" height="720" rx="20" fill="#f6f8fc"/>
+  <text x="36" y="51" class="title">对同一个 key 写两次，旧数据去哪了？</text>
+  <text x="36" y="82" class="sub">10:00 put(ns, "user-1", {"name": "小明"})　→　10:05 再 put(ns, "user-1", {"name": "小红"})</text>
+
+  <text x="420" y="124" class="colhead" text-anchor="middle">第一次 put 后（10:00）</text>
+  <text x="806" y="124" class="colhead" text-anchor="middle">第二次 put 后（10:05）</text>
+  <text x="1056" y="124" class="colhead" text-anchor="middle">created_at</text>
+
+  <!-- ============ 行 1：InMemoryStore ============ -->
+  <rect x="32" y="138" width="1096" height="152" rx="14" class="panel"/>
+  <text x="52" y="176" class="label">InMemoryStore</text>
+  <text x="52" y="204" class="code-b">字典赋值</text>
+  <text x="52" y="230" class="small">_data[ns][key] = Item(…)</text>
+  <text x="52" y="254" class="small">key 已存在也只是换个值</text>
+
+  <rect x="266" y="152" width="308" height="124" rx="10" class="card"/>
+  <text x="282" y="178" class="code-b">_data[ns]["user-1"] → Item①</text>
+  <text x="282" y="206" class="code">value</text><text x="386" y="206" class="code">{"name": "小明"}</text>
+  <text x="282" y="230" class="code">created_at</text><text x="386" y="230" class="code">10:00</text>
+  <text x="282" y="254" class="code">updated_at</text><text x="386" y="254" class="code">10:00</text>
+
+  <path d="M 580 214 L 646 214" class="line" marker-end="url(#tip)"/>
+  <text x="613" y="204" class="small" text-anchor="middle">换对象</text>
+
+  <rect x="652" y="152" width="308" height="124" rx="10" class="card-new"/>
+  <text x="668" y="178" class="code-b">_data[ns]["user-1"] → Item②</text>
+  <text x="668" y="206" class="code">value</text><text x="772" y="206" class="code"><tspan class="chg">{"name": "小红"}</tspan></text>
+  <text x="668" y="230" class="code">created_at</text><text x="772" y="230" class="code"><tspan class="chg">10:05</tspan></text>
+  <text x="668" y="254" class="code">updated_at</text><text x="772" y="254" class="code"><tspan class="chg">10:05</tspan></text>
+
+  <rect x="980" y="170" width="132" height="88" rx="12" class="reset"/>
+  <text x="1046" y="208" class="big-reset" text-anchor="middle">重置</text>
+  <text x="1046" y="236" class="small" text-anchor="middle">10:00 → 10:05</text>
+
+  <!-- ============ 行 2：SqliteStore ============ -->
+  <rect x="32" y="304" width="1096" height="168" rx="14" class="panel"/>
+  <text x="52" y="342" class="label">SqliteStore</text>
+  <text x="52" y="370" class="code-b">INSERT OR REPLACE</text>
+  <text x="52" y="396" class="small">主键 (prefix, key) 冲突时：</text>
+  <text x="52" y="420" class="small">删掉旧行，再插入新行</text>
+
+  <rect x="266" y="318" width="308" height="124" rx="10" class="card"/>
+  <text x="282" y="344" class="code-b">store 表 · rowid 1</text>
+  <text x="282" y="372" class="code">value</text><text x="386" y="372" class="code">{"name": "小明"}</text>
+  <text x="282" y="396" class="code">created_at</text><text x="386" y="396" class="code">10:00</text>
+  <text x="282" y="420" class="code">updated_at</text><text x="386" y="420" class="code">10:00</text>
+
+  <path d="M 580 380 L 646 380" class="line" marker-end="url(#tip)"/>
+  <text x="613" y="370" class="small" text-anchor="middle">删 + 插</text>
+
+  <rect x="652" y="318" width="308" height="30" rx="8" class="card-dead"/>
+  <text x="668" y="338" class="code dead">rowid 1 · 小明 · 10:00 · 10:00</text>
+  <path d="M 664 333 L 948 333" stroke="#b42318" stroke-width="1.6"/>
+  <rect x="652" y="356" width="308" height="102" rx="10" class="card-new"/>
+  <text x="668" y="380" class="code-b">store 表 · rowid 2（新行）</text>
+  <text x="668" y="404" class="code">value</text><text x="772" y="404" class="code"><tspan class="chg">{"name": "小红"}</tspan></text>
+  <text x="668" y="426" class="code">created_at</text><text x="772" y="426" class="code"><tspan class="chg">10:05</tspan></text>
+  <text x="668" y="448" class="code">updated_at</text><text x="772" y="448" class="code"><tspan class="chg">10:05</tspan></text>
+
+  <rect x="980" y="344" width="132" height="88" rx="12" class="reset"/>
+  <text x="1046" y="382" class="big-reset" text-anchor="middle">重置</text>
+  <text x="1046" y="410" class="small" text-anchor="middle">10:00 → 10:05</text>
+
+  <!-- ============ 行 3：PostgresStore ============ -->
+  <rect x="32" y="486" width="1096" height="152" rx="14" class="panel"/>
+  <text x="52" y="524" class="label">PostgresStore</text>
+  <text x="52" y="552" class="code-b">ON CONFLICT DO UPDATE</text>
+  <text x="52" y="578" class="small">冲突时在原行上只改</text>
+  <text x="52" y="602" class="small">value、updated_at（和 TTL 列）</text>
+
+  <rect x="266" y="500" width="308" height="124" rx="10" class="card"/>
+  <text x="282" y="526" class="code-b">store 表 · 原来那一行</text>
+  <text x="282" y="554" class="code">value</text><text x="386" y="554" class="code">{"name": "小明"}</text>
+  <text x="282" y="578" class="code">created_at</text><text x="386" y="578" class="code">10:00</text>
+  <text x="282" y="602" class="code">updated_at</text><text x="386" y="602" class="code">10:00</text>
+
+  <path d="M 580 562 L 646 562" class="line" marker-end="url(#tip)"/>
+  <text x="613" y="552" class="small" text-anchor="middle">原地改</text>
+
+  <rect x="652" y="500" width="308" height="124" rx="10" class="card-new"/>
+  <text x="668" y="526" class="code-b">store 表 · 还是同一行</text>
+  <text x="668" y="554" class="code">value</text><text x="772" y="554" class="code"><tspan class="chg">{"name": "小红"}</tspan></text>
+  <text x="668" y="578" class="code">created_at</text><text x="772" y="578" class="code"><tspan class="kept">10:00（没动）</tspan></text>
+  <text x="668" y="602" class="code">updated_at</text><text x="772" y="602" class="code"><tspan class="chg">10:05</tspan></text>
+
+  <rect x="980" y="518" width="132" height="88" rx="12" class="keep"/>
+  <text x="1046" y="556" class="big-keep" text-anchor="middle">保留</text>
+  <text x="1046" y="584" class="small" text-anchor="middle">仍是 10:00</text>
+
+  <text x="36" y="672" class="small">橙色 = 第二次 put 改掉的值。三种 store 的 get / search 都只读，不改这两个时间；TTL 刷新只改 expires_at。</text>
+  <text x="36" y="696" class="small">时间均为 UTC。SQLite 的 CURRENT_TIMESTAMP 只精确到秒且不带时区，所以读回来是 2026-10-08T08:51:06 这种格式。</text>
+</svg>

@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="640" viewBox="0 0 1160 640" role="img" aria-labelledby="title desc">
+  <title id="title">两种写入时机：用户要等多久，记忆何时可用</title>
+  <desc id="desc">方式一在主流程里写：第一次模型调用决定调用 save_memory 三次，tools 节点写入 store，第二次模型调用生成回复，然后回复用户，此时 store 已有 3 条记忆；用户等待两次模型调用，本次 11.0 秒。方式二在后台写：一次模型调用生成回复后立即回复用户，此时 store 为 0 条；随后 asyncio.create_task 启动后台任务，用结构化输出提取记忆并 aput 写入，结束后 store 有 3 条；后台部分不计入用户等待，本次 7.0 秒，主流程本次 7.8 秒。</desc>
+  <defs>
+    <marker id="tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8a9bb0"/></marker>
+    <style>
+      text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+      .title{font-size:30px;font-weight:700}
+      .sub{font-size:16px;fill:#52677e}
+      .lane{font-size:20px;font-weight:700}
+      .lane2{font-size:15px;fill:#52677e}
+      .bt{font-size:15px;font-weight:650}
+      .bs{font-size:13.5px;fill:#52677e}
+      .code{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:13px}
+      .wait{font-size:15px;font-weight:650;fill:#b42318}
+      .free{font-size:15px;font-weight:650;fill:#1f7a4a}
+      .panel{fill:#ffffff;stroke:#dce4ee}
+      .mdl{fill:#f4f0fb;stroke:#cfc2e8;stroke-width:1.3}
+      .tls{fill:#e9f7ef;stroke:#9fd3b3;stroke-width:1.3}
+      .bg{fill:#fff5e4;stroke:#e8c58a;stroke-width:1.3}
+      .reply{fill:#eef3fa;stroke:#9fb3cc;stroke-width:1.3}
+      .line{fill:none;stroke:#8a9bb0;stroke-width:1.6}
+      .bw{fill:none;stroke:#d64545;stroke-width:1.6}
+      .bf{fill:none;stroke:#3a9a63;stroke-width:1.6}
+    </style>
+  </defs>
+  <rect width="1160" height="640" rx="20" fill="#f6f8fc"/>
+  <text x="36" y="51" class="title">两种写入时机：用户要等多久，记忆何时可用</text>
+  <text x="36" y="80" class="sub">同一句输入“我叫小花，最喜欢喝紫光园的奶皮子酸奶，不吃香菜。帮我推荐一道晚饭吧。”，括号里是本次运行的实测耗时</text>
+
+  <!-- ===== 方式一 ===== -->
+  <rect x="32" y="104" width="1096" height="170" rx="16" class="panel"/>
+  <text x="52" y="144" class="lane">方式一</text>
+  <text x="52" y="170" class="lane2">在主流程里写</text>
+  <text x="52" y="192" class="lane2">hot path</text>
+
+  <rect x="220" y="124" width="236" height="62" rx="10" class="mdl"/>
+  <text x="236" y="150" class="bt">① 模型调用</text>
+  <text x="236" y="174" class="bs">决定调用 save_memory ×3</text>
+  <path d="M 456 155 L 478 155" class="line" marker-end="url(#tip)"/>
+  <rect x="482" y="124" width="196" height="62" rx="10" class="tls"/>
+  <text x="498" y="150" class="bt">② tools 节点</text>
+  <text x="498" y="174" class="code">store.put ×3</text>
+  <path d="M 678 155 L 700 155" class="line" marker-end="url(#tip)"/>
+  <rect x="704" y="124" width="196" height="62" rx="10" class="mdl"/>
+  <text x="720" y="150" class="bt">③ 模型调用</text>
+  <text x="720" y="174" class="bs">看到 saved，生成回复</text>
+  <path d="M 900 155 L 922 155" class="line" marker-end="url(#tip)"/>
+  <rect x="926" y="124" width="186" height="62" rx="10" class="reply"/>
+  <text x="942" y="150" class="bt">回复用户</text>
+  <text x="942" y="174" class="bs">此时 store：3 条</text>
+
+  <path d="M 220 200 L 220 210 L 900 210 L 900 200" class="bw"/>
+  <text x="560" y="236" class="wait" text-anchor="middle">用户等待：2 次模型调用（11.0 秒）</text>
+  <text x="560" y="260" class="bs" text-anchor="middle">记忆在回复前就已写好，下一次对话马上能用</text>
+
+  <!-- ===== 方式二 ===== -->
+  <rect x="32" y="290" width="1096" height="262" rx="16" class="panel"/>
+  <text x="52" y="330" class="lane">方式二</text>
+  <text x="52" y="356" class="lane2">在后台写</text>
+  <text x="52" y="378" class="lane2">background</text>
+
+  <rect x="220" y="310" width="236" height="62" rx="10" class="mdl"/>
+  <text x="236" y="336" class="bt">① 模型调用</text>
+  <text x="236" y="360" class="bs">直接生成回复</text>
+  <path d="M 456 341 L 478 341" class="line" marker-end="url(#tip)"/>
+  <rect x="482" y="310" width="196" height="62" rx="10" class="reply"/>
+  <text x="498" y="336" class="bt">回复用户</text>
+  <text x="498" y="360" class="bs">此时 store：0 条</text>
+
+  <path d="M 220 386 L 220 396 L 456 396 L 456 386" class="bw"/>
+  <text x="338" y="420" class="wait" text-anchor="middle">用户等待：1 次模型调用（7.8 秒）</text>
+
+  <path d="M 580 372 L 580 462 L 600 462" class="line" stroke-dasharray="5 4" marker-end="url(#tip)"/>
+  <text x="592" y="420" class="code">asyncio.create_task(...)</text>
+
+  <rect x="604" y="432" width="236" height="62" rx="10" class="bg"/>
+  <text x="620" y="458" class="bt">② 后台任务：模型提取记忆</text>
+  <text x="620" y="482" class="code">with_structured_output</text>
+  <path d="M 840 463 L 862 463" class="line" marker-end="url(#tip)"/>
+  <rect x="866" y="432" width="246" height="62" rx="10" class="tls"/>
+  <text x="882" y="458" class="bt">③ 写入 store</text>
+  <text x="882" y="482" class="bs">aput ×3 → store：3 条</text>
+
+  <path d="M 604 508 L 604 518 L 1112 518 L 1112 508" class="bf"/>
+  <text x="858" y="542" class="free" text-anchor="middle">不计入用户等待（7.0 秒）；完成前其他会话读不到新记忆</text>
+
+  <text x="36" y="586" class="bs">单次运行的耗时受网络和模型波动影响，只作参考。稳定的差别在于用户等待期间的模型调用次数：方式一 2 次，方式二 1 次。</text>
+  <text x="36" y="610" class="bs">方式二多出的那次模型调用（提取记忆）仍然要花钱，只是挪到了用户看不到的地方。</text>
+</svg>

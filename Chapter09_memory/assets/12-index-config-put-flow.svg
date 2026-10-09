@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="740" viewBox="0 0 1160 740" role="img" aria-labelledby="title desc">
+  <title id="title">put 时 index_config 三个 key 的分工</title>
+  <desc id="desc">以举例1 为例：fields 为 ["$", "course"]。put Alice 的记忆时，第一步按 fields 的每条路径取文本：$ 取出整个 value 转成的 JSON 字符串，course 取出“计算机组成原理”。第二步把两段文本放进一个列表，只调用一次 embed，返回两个 6 维向量。第三步以路径为键存进 _vectors[namespace][key]，得到 "$" 和 "course" 两个向量。dims 在这三步中都没有被读取，只有 PostgresStore 用它建 vector(dims) 列。</desc>
+  <defs>
+    <marker id="tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8a9bb0"/></marker>
+    <style>
+      text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+      .title{font-size:30px;font-weight:700}
+      .sub{font-size:16px;fill:#52677e}
+      .key{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:19px;font-weight:700}
+      .body{font-size:16px}
+      .small{font-size:14px;fill:#52677e}
+      .code{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:14px}
+      .step{font-size:15px;font-weight:650}
+      .k-fields{fill:#fff5e4;stroke:#e8c58a;stroke-width:1.4}
+      .k-embed{fill:#f4f0fb;stroke:#cfc2e8;stroke-width:1.4}
+      .k-store{fill:#eef3fa;stroke:#9fb3cc;stroke-width:1.4}
+      .k-put{fill:#ffffff;stroke:#dce4ee;stroke-width:1.2}
+      .k-dims{fill:#f3f3f3;stroke:#b8c0c8;stroke-width:1.4;stroke-dasharray:6 4}
+      .inner{fill:#ffffff;stroke:#e3d2b0;stroke-width:1}
+      .chip{fill:#fde7c2;stroke:none}
+      .line{fill:none;stroke:#8a9bb0;stroke-width:1.6}
+      .t-fields{fill:#9a5b00}
+      .t-embed{fill:#6b4fa0}
+      .t-store{fill:#2c4f78}
+      .t-dims{fill:#6b7785}
+    </style>
+  </defs>
+  <rect width="1160" height="740" rx="20" fill="#f6f8fc"/>
+  <text x="36" y="51" class="title">put 时，index_config 三个 key 的分工</text>
+  <text x="36" y="80" class="sub">以举例1 为例：index_config = {"embed": embed, "dims": 6, "fields": ["$", "course"]}，put Alice 的记忆</text>
+
+  <!-- 行 0：put -->
+  <rect x="32" y="104" width="260" height="86" rx="12" class="k-put"/>
+  <text x="52" y="138" class="step">调用 put</text>
+  <text x="52" y="164" class="small">store 拿到 namespace、key、value</text>
+  <rect x="312" y="104" width="816" height="86" rx="12" class="k-put"/>
+  <text x="330" y="136" class="code">store.put(("users", "Alice", "memories"), "preferences", value)</text>
+  <text x="330" y="166" class="code">value = {"course": "计算机组成原理", "sports": "跑步", "food": "紫光园奶皮子酸奶"}</text>
+
+  <path d="M 340 190 L 340 224" class="line" marker-end="url(#tip)"/>
+  <text x="356" y="212" class="small">① 对 fields 里的每条路径调用 get_text_at_path(value, 路径)</text>
+
+  <!-- 行 1：fields -->
+  <rect x="32" y="228" width="260" height="116" rx="12" class="k-fields"/>
+  <text x="52" y="262" class="key t-fields">fields</text>
+  <text x="52" y="292" class="body">决定从 value 的哪些位置</text>
+  <text x="52" y="316" class="body">取文本，默认 ["$"]</text>
+  <rect x="312" y="228" width="816" height="116" rx="12" class="k-fields"/>
+  <rect x="328" y="242" width="80" height="38" rx="8" class="chip"/>
+  <text x="368" y="266" class="code t-fields" text-anchor="middle" font-weight="700">"$"</text>
+  <path d="M 408 261 L 424 261" class="line" marker-end="url(#tip)"/>
+  <rect x="428" y="242" width="684" height="38" rx="8" class="inner"/>
+  <text x="440" y="266" class="code">'{"course": "计算机组成原理", "food": "紫光园奶皮子酸奶", "sports": "跑步"}'</text>
+  <rect x="328" y="292" width="80" height="38" rx="8" class="chip"/>
+  <text x="368" y="316" class="code t-fields" text-anchor="middle" font-weight="700">"course"</text>
+  <path d="M 408 311 L 424 311" class="line" marker-end="url(#tip)"/>
+  <rect x="428" y="292" width="684" height="38" rx="8" class="inner"/>
+  <text x="440" y="316" class="code">'计算机组成原理'</text>
+  <text x="1100" y="316" class="small" text-anchor="end">"$" = 整个 value 转成 JSON，键按字母排序</text>
+
+  <path d="M 340 344 L 340 378" class="line" marker-end="url(#tip)"/>
+  <text x="356" y="366" class="small">② 两段文本放进一个列表，只调用一次 embed</text>
+
+  <!-- 行 2：embed -->
+  <rect x="32" y="382" width="260" height="118" rx="12" class="k-embed"/>
+  <text x="52" y="416" class="key t-embed">embed</text>
+  <text x="52" y="446" class="body">把每段文本变成一个向量</text>
+  <text x="52" y="470" class="small">put 时调用 embed_documents</text>
+  <rect x="312" y="382" width="816" height="118" rx="12" class="k-embed"/>
+  <text x="330" y="412" class="code">embed(['{"course": …}', '计算机组成原理'])</text>
+  <text x="330" y="440" class="code">→ [[1.0, 1.0, 1.0, 1.0, 1.0, 1.0],</text>
+  <text x="352" y="462" class="code">[1.0, 1.0, 1.0, 1.0, 1.0, 1.0]]</text>
+  <text x="1110" y="440" class="small" text-anchor="end">输入 list[str]，输出 list[list[float]]</text>
+  <text x="1110" y="462" class="small" text-anchor="end">2 段文本 → 2 个向量，每个几维由 embed 决定</text>
+
+  <path d="M 340 500 L 340 534" class="line" marker-end="url(#tip)"/>
+  <text x="356" y="522" class="small">③ 以路径为键存回去</text>
+
+  <!-- 行 3：store 保存 -->
+  <rect x="32" y="538" width="260" height="90" rx="12" class="k-store"/>
+  <text x="52" y="570" class="step t-store">store 自己完成</text>
+  <text x="52" y="598" class="body">按路径保存向量</text>
+  <rect x="312" y="538" width="816" height="90" rx="12" class="k-store"/>
+  <text x="330" y="572" class="code">_vectors[("users", "Alice", "memories")]["preferences"]</text>
+  <text x="330" y="600" class="code">= {"$": [1.0, …], "course": [1.0, …]}</text>
+  <text x="1110" y="600" class="small" text-anchor="end">笔记里打印出的就是这个字典</text>
+
+  <!-- dims -->
+  <rect x="32" y="648" width="1096" height="72" rx="12" class="k-dims"/>
+  <text x="52" y="682" class="key t-dims">dims</text>
+  <text x="116" y="680" class="body">= 6：上面三步都没有读取它，embed 返回几维就存几维。InMemoryStore / SqliteStore 不检查；</text>
+  <text x="116" y="704" class="body">只有 PostgresStore 用它建表，列类型是 vector(dims)，之后写入的向量必须正好是 dims 维。</text>
+</svg>

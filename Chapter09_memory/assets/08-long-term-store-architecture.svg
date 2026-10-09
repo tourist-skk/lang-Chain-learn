@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="1010" viewBox="0 0 1160 1010" role="img" aria-labelledby="title desc">
+  <title id="title">长期记忆的存储架构：store → namespace → key → value</title>
+  <desc id="desc">左侧是一个 store 的内部结构：里面有四个 namespace，分别是 ("users","u_001","profile")、("users","u_001","episodes")、("users","u_002","profile")、("app","procedures")，每个 namespace 下有若干 key，每个 key 对应一个 dict 类型的 value。虚线框标出 search(("users","u_001")) 会按前缀命中前两个 namespace。右侧逐层说明 store、namespace、key、value 的作用。底部说明一条记忆就是一个 Item，以及 InMemoryStore 用两层字典、SqliteStore/PostgresStore 用主键为 (prefix, key) 的表来实现这四层。</desc>
+  <defs>
+    <style>
+      text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+      .title{font-size:30px;font-weight:700}
+      .sub{font-size:17px;fill:#52677e}
+      .label{font-size:19px;font-weight:650}
+      .body{font-size:16px}
+      .small{font-size:15px;fill:#52677e}
+      .code{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:15px}
+      .code-s{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:14px}
+      .c-store{fill:#2c4f78;font-weight:700}
+      .c-ns{fill:#9a5b00;font-weight:600}
+      .c-key{fill:#1f7a4a;font-weight:600}
+      .c-val{fill:#6b4fa0}
+      .tag{font-size:13px;font-weight:600}
+      .scope{font-size:15px;fill:#b42318;font-weight:600}
+      .panel{fill:#ffffff;stroke:#dce4ee}
+      .store{fill:#eef3fa;stroke:#9fb3cc;stroke-width:1.6}
+      .ns{fill:#fff5e4;stroke:#e8c58a;stroke-width:1.4}
+      .key{fill:#e9f7ef;stroke:#9fd3b3;stroke-width:1.2}
+      .val{fill:#f4f0fb;stroke:#cfc2e8;stroke-width:1.2}
+      .arrow{fill:none;stroke:#8a9bb0;stroke-width:1.6}
+    </style>
+    <marker id="tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8a9bb0"/></marker>
+  </defs>
+  <rect width="1160" height="1010" rx="20" fill="#f6f8fc"/>
+  <text x="36" y="51" class="title">长期记忆的存储架构：store → namespace → key → value</text>
+  <text x="36" y="82" class="sub">类比文件系统：store 是磁盘，namespace 是文件夹路径，key 是文件名，value 是文件内容（一个 JSON dict）</text>
+
+  <!-- ============ 左：一个 store 的内部 ============ -->
+  <rect x="32" y="106" width="664" height="664" rx="16" class="panel"/>
+  <rect x="48" y="122" width="632" height="632" rx="14" class="store"/>
+  <text x="68" y="154" class="label c-store">store = InMemoryStore()</text>
+  <text x="660" y="154" class="small" text-anchor="end">整个应用共享这一个</text>
+
+  <!-- search 范围（虚线框） -->
+  <rect x="58" y="168" width="612" height="304" rx="12" fill="none" stroke="#d64545" stroke-width="1.8" stroke-dasharray="7 5"/>
+
+  <!-- NS1 -->
+  <rect x="68" y="178" width="592" height="146" rx="10" class="ns"/>
+  <text x="84" y="206" class="code c-ns">("users", "u_001", "profile")</text>
+  <rect x="534" y="190" width="112" height="24" rx="12" fill="#fde7c2"/>
+  <text x="590" y="207" class="tag" fill="#9a5b00" text-anchor="middle">语义记忆</text>
+
+  <rect x="84" y="222" width="150" height="38" rx="8" class="key"/>
+  <text x="159" y="247" class="code c-key" text-anchor="middle">"preferences"</text>
+  <path d="M 234 241 L 262 241" class="arrow" marker-end="url(#tip)"/>
+  <rect x="266" y="222" width="380" height="38" rx="8" class="val"/>
+  <text x="278" y="247" class="code-s c-val">{"style": "简短", "lang": "Python"}</text>
+
+  <rect x="84" y="270" width="150" height="38" rx="8" class="key"/>
+  <text x="159" y="295" class="code c-key" text-anchor="middle">"membership"</text>
+  <path d="M 234 289 L 262 289" class="arrow" marker-end="url(#tip)"/>
+  <rect x="266" y="270" width="380" height="38" rx="8" class="val"/>
+  <text x="278" y="295" class="code-s c-val">{"vip": true}</text>
+
+  <!-- NS2 -->
+  <rect x="68" y="336" width="592" height="98" rx="10" class="ns"/>
+  <text x="84" y="364" class="code c-ns">("users", "u_001", "episodes")</text>
+  <rect x="534" y="348" width="112" height="24" rx="12" fill="#fde7c2"/>
+  <text x="590" y="365" class="tag" fill="#9a5b00" text-anchor="middle">情景记忆</text>
+
+  <rect x="84" y="380" width="150" height="38" rx="8" class="key"/>
+  <text x="159" y="405" class="code c-key" text-anchor="middle">"task_0927"</text>
+  <path d="M 234 399 L 262 399" class="arrow" marker-end="url(#tip)"/>
+  <rect x="266" y="380" width="380" height="38" rx="8" class="val"/>
+  <text x="278" y="405" class="code-s c-val">{"input": "写个爬虫", "good_answer": "…"}</text>
+
+  <text x="660" y="462" class="scope" text-anchor="end">search(("users", "u_001")) 按前缀命中这两组</text>
+
+  <!-- NS3 -->
+  <rect x="68" y="486" width="592" height="98" rx="10" class="ns"/>
+  <text x="84" y="514" class="code c-ns">("users", "u_002", "profile")</text>
+  <rect x="534" y="498" width="112" height="24" rx="12" fill="#fde7c2"/>
+  <text x="590" y="515" class="tag" fill="#9a5b00" text-anchor="middle">另一个用户</text>
+
+  <rect x="84" y="530" width="150" height="38" rx="8" class="key"/>
+  <text x="159" y="555" class="code c-key" text-anchor="middle">"preferences"</text>
+  <path d="M 234 549 L 262 549" class="arrow" marker-end="url(#tip)"/>
+  <rect x="266" y="530" width="380" height="38" rx="8" class="val"/>
+  <text x="278" y="555" class="code-s c-val">{"style": "详细"}</text>
+
+  <!-- NS4 -->
+  <rect x="68" y="596" width="592" height="98" rx="10" class="ns"/>
+  <text x="84" y="624" class="code c-ns">("app", "procedures")</text>
+  <rect x="534" y="608" width="112" height="24" rx="12" fill="#fde7c2"/>
+  <text x="590" y="625" class="tag" fill="#9a5b00" text-anchor="middle">程序性记忆</text>
+
+  <rect x="84" y="640" width="150" height="38" rx="8" class="key"/>
+  <text x="159" y="665" class="code c-key" text-anchor="middle">"system_prompt"</text>
+  <path d="M 234 659 L 262 659" class="arrow" marker-end="url(#tip)"/>
+  <rect x="266" y="640" width="380" height="38" rx="8" class="val"/>
+  <text x="278" y="665" class="code-s c-val">{"text": "你是一个……"}</text>
+
+  <text x="84" y="726" class="small">两个用户都有 key "preferences"，namespace 不同，所以互不冲突</text>
+
+  <!-- ============ 右：逐层说明 ============ -->
+  <rect x="712" y="106" width="416" height="664" rx="16" class="panel"/>
+  <text x="732" y="140" class="label">每一层是什么</text>
+
+  <!-- 1 store -->
+  <rect x="732" y="158" width="376" height="134" rx="12" class="store"/>
+  <text x="750" y="188" class="label c-store">① store · 存储后端</text>
+  <text x="750" y="216" class="body">InMemoryStore 放内存，进程重启就丢；</text>
+  <text x="750" y="240" class="body">SqliteStore / PostgresStore 落盘。</text>
+  <text x="750" y="268" class="code-s">create_agent(..., store=store)</text>
+
+  <!-- 2 namespace -->
+  <rect x="732" y="304" width="376" height="150" rx="12" class="ns"/>
+  <text x="750" y="334" class="label c-ns">② namespace · 分组路径</text>
+  <text x="750" y="362" class="body">类型是 tuple[str, ...]，像多级文件夹。</text>
+  <text x="750" y="386" class="body">通常把 user_id 放进去，实现用户隔离；</text>
+  <text x="750" y="410" class="body">再用最后一段区分记忆类型。</text>
+  <text x="750" y="436" class="body">search 只需给出<tspan font-weight="700">前缀</tspan>，就能查整棵子树。</text>
+
+  <!-- 3 key -->
+  <rect x="732" y="466" width="376" height="126" rx="12" class="key"/>
+  <text x="750" y="496" class="label c-key">③ key · 条目名</text>
+  <text x="750" y="524" class="body">类型是 str，在同一个 namespace 内唯一。</text>
+  <text x="750" y="548" class="body">对同一个 namespace + key 再 put 一次，</text>
+  <text x="750" y="572" class="body">就是覆盖旧值（upsert）。</text>
+
+  <!-- 4 value -->
+  <rect x="732" y="604" width="376" height="150" rx="12" class="val"/>
+  <text x="750" y="634" class="label c-val" style="font-weight:650">④ value · 记忆内容</text>
+  <text x="750" y="662" class="body">类型是 dict，必须能 JSON 序列化。</text>
+  <text x="750" y="686" class="body">里面的字段可以用 filter 精确过滤；</text>
+  <text x="750" y="710" class="body">创建 store 时配置 index（embedding），</text>
+  <text x="750" y="734" class="body">还能用 query 按语义相似度检索。</text>
+
+  <!-- ============ 底：一条记忆 = Item，以及底层实现 ============ -->
+  <rect x="32" y="786" width="1096" height="196" rx="16" class="panel"/>
+  <text x="52" y="818" class="label">一条记忆 = 一个 Item，四层在底层就是“两级定位”</text>
+  <text x="52" y="848" class="code-s">Item(namespace=("users","u_001","profile"), key="preferences", value={...}, created_at, updated_at)</text>
+
+  <text x="52" y="886" class="body" font-weight="650">InMemoryStore</text>
+  <text x="250" y="886" class="code-s">self._data: dict[ namespace元组, dict[ key, Item ] ]</text>
+  <text x="840" y="886" class="small">两层嵌套字典</text>
+
+  <text x="52" y="922" class="body" font-weight="650">Sqlite / PostgresStore</text>
+  <text x="250" y="922" class="code-s">表 store(prefix, key, value, created_at, updated_at, …)  PRIMARY KEY (prefix, key)</text>
+  <text x="250" y="950" class="small">prefix 就是 namespace 用点号拼接成的字符串，如 "users.u_001.profile"；value 存成 JSON。</text>
+  <text x="250" y="972" class="small">所以 get / put 必须给完整的 namespace + key；search 用 prefix 做前缀匹配。</text>
+</svg>

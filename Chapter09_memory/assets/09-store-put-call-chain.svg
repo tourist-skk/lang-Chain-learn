@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="960" viewBox="0 0 1160 960" role="img" aria-labelledby="title desc">
+  <title id="title">put() 的调用链：BaseStore 打包成 PutOp，各 store 的 batch() 负责真正写入</title>
+  <desc id="desc">用户调用 store.put 后，先进入所有 store 共用的父类方法 BaseStore.put：校验 namespace、检查 TTL 支持，然后把参数打包成 PutOp 交给 batch。get、search、delete 也是先打包成 GetOp、SearchOp、value 为 None 的 PutOp 再交给 batch。batch 是抽象方法，三种 store 各自实现：InMemoryStore 在 _apply_put_ops 里执行 _data[ns][key] = Item(...)，新增和修改是同一行代码，修改会换成新 Item；SqliteStore 在事务里执行 INSERT OR REPLACE，冲突时删旧行插新行；PostgresStore 执行 INSERT ... ON CONFLICT DO UPDATE，冲突时在原行上只更新 value 和 updated_at。</desc>
+  <defs>
+    <marker id="tip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#8a9bb0"/></marker>
+    <style>
+      text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+      .title{font-size:30px;font-weight:700}
+      .sub{font-size:17px;fill:#52677e}
+      .label{font-size:19px;font-weight:650}
+      .body{font-size:16px}
+      .small{font-size:14px;fill:#52677e}
+      .code{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:15px}
+      .code-s{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:13.5px}
+      .code-h{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:17px;font-weight:700}
+      .step{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:14.5px;font-weight:700}
+      .panel{fill:#ffffff;stroke:#dce4ee}
+      .base{fill:#eef3fa;stroke:#9fb3cc;stroke-width:1.5}
+      .side{fill:#fff5e4;stroke:#e8c58a;stroke-width:1.4}
+      .stepbox{fill:#f6f8fc;stroke:#dce4ee}
+      .codebox{fill:#f4f0fb;stroke:#cfc2e8}
+      .reset{fill:#fdecec;stroke:#efb3b3;stroke-width:1.4}
+      .keep{fill:#e9f7ef;stroke:#9fd3b3;stroke-width:1.4}
+      .t-reset{fill:#b42318;font-weight:650}
+      .t-keep{fill:#1f7a4a;font-weight:650}
+      .line{fill:none;stroke:#8a9bb0;stroke-width:1.8}
+    </style>
+  </defs>
+  <rect width="1160" height="960" rx="20" fill="#f6f8fc"/>
+  <text x="36" y="51" class="title">put() 的调用链</text>
+  <text x="36" y="82" class="sub">父类 BaseStore 只负责“打包”成操作对象（Op），真正读写数据的是每种 store 自己实现的 batch()</text>
+
+  <!-- 用户代码 -->
+  <rect x="200" y="104" width="392" height="44" rx="10" fill="#17304b"/>
+  <text x="396" y="132" class="code" text-anchor="middle" style="fill:#ffffff">store.put(namespace, key, value)</text>
+  <path d="M 396 148 L 396 168" class="line" marker-end="url(#tip)"/>
+
+  <!-- BaseStore.put -->
+  <rect x="32" y="172" width="728" height="160" rx="14" class="base"/>
+  <text x="52" y="202" class="label">BaseStore.put() · 所有 store 共用的父类方法</text>
+  <text x="52" y="236" class="code">① _validate_namespace(namespace)</text>
+  <text x="358" y="236" class="small">不能为空；每段不能含 "."；首段不能是 "langgraph"</text>
+  <text x="52" y="268" class="code">② 检查 ttl</text>
+  <text x="158" y="268" class="small">传了 ttl 但 store 不支持（如 InMemoryStore）→ NotImplementedError</text>
+  <text x="52" y="304" class="code" font-weight="700">③ self.batch([PutOp(namespace, str(key), value, index, ttl)])</text>
+
+  <!-- 其他 API -->
+  <rect x="776" y="172" width="352" height="160" rx="14" class="side"/>
+  <text x="796" y="202" class="label">其他 API 也是同一个套路</text>
+  <text x="796" y="234" class="code-s">get    → batch([GetOp(…)])[0]</text>
+  <text x="796" y="260" class="code-s">search → batch([SearchOp(…)])[0]</text>
+  <text x="796" y="286" class="code-s">delete → batch([PutOp(…, None)])</text>
+  <text x="796" y="314" class="small">value 为 None 的 PutOp 就表示删除</text>
+
+  <!-- 分叉 -->
+  <path d="M 396 332 L 396 352 M 208 352 L 952 352" class="line"/>
+  <path d="M 208 352 L 208 388" class="line" marker-end="url(#tip)"/>
+  <path d="M 580 352 L 580 388" class="line" marker-end="url(#tip)"/>
+  <path d="M 952 352 L 952 388" class="line" marker-end="url(#tip)"/>
+  <text x="600" y="376" class="small">batch() 是抽象方法，由各个 store 自己实现</text>
+
+  <!-- ============ 列 1：InMemoryStore ============ -->
+  <rect x="32" y="392" width="352" height="540" rx="14" class="panel"/>
+  <text x="52" y="424" class="code-h">InMemoryStore.batch()</text>
+  <text x="52" y="448" class="small">数据在 Python 字典 self._data 里</text>
+
+  <rect x="48" y="464" width="320" height="84" rx="10" class="stepbox"/>
+  <text x="64" y="490" class="step">① _prepare_ops()</text>
+  <text x="64" y="515" class="small">按 (namespace, key) 收集 PutOp；</text>
+  <text x="64" y="537" class="small">同一批对同一个 key 写多次只留最后一次</text>
+  <path d="M 208 548 L 208 564" class="line" marker-end="url(#tip)"/>
+
+  <rect x="48" y="568" width="320" height="240" rx="10" class="stepbox"/>
+  <text x="64" y="594" class="step">② _apply_put_ops()</text>
+  <text x="64" y="624" class="small">value 是 None（delete）</text>
+  <rect x="64" y="634" width="288" height="44" rx="8" class="codebox"/>
+  <text x="76" y="661" class="code-s">_data[ns].pop(key, None)</text>
+  <text x="64" y="708" class="small">否则（新增 或 修改，同一行代码）</text>
+  <rect x="64" y="718" width="288" height="76" rx="8" class="codebox"/>
+  <text x="76" y="740" class="code-s">_data[ns][key] = Item(</text>
+  <text x="76" y="761" class="code-s">  created_at=datetime.now(),</text>
+  <text x="76" y="782" class="code-s">  updated_at=datetime.now())</text>
+  <path d="M 208 808 L 208 824" class="line" marker-end="url(#tip)"/>
+
+  <rect x="48" y="828" width="320" height="88" rx="10" class="reset"/>
+  <text x="64" y="852" class="body">新增：字典里多一项</text>
+  <text x="64" y="876" class="body">修改：旧 Item 被一个新 Item 替换</text>
+  <text x="64" y="900" class="body t-reset">→ created_at 重置</text>
+
+  <!-- ============ 列 2：SqliteStore ============ -->
+  <rect x="404" y="392" width="352" height="540" rx="14" class="panel"/>
+  <text x="424" y="424" class="code-h">SqliteStore.batch()</text>
+  <text x="424" y="448" class="small">数据在 SQLite 的 store 表里</text>
+
+  <rect x="420" y="464" width="320" height="84" rx="10" class="stepbox"/>
+  <text x="436" y="490" class="step">① self._cursor()</text>
+  <text x="436" y="515" class="small">执行 BEGIN …… COMMIT，</text>
+  <text x="436" y="537" class="small">整批 SQL 在一个事务里完成</text>
+  <path d="M 580 548 L 580 564" class="line" marker-end="url(#tip)"/>
+
+  <rect x="420" y="568" width="320" height="240" rx="10" class="stepbox"/>
+  <text x="436" y="594" class="step">② _prepare_batch_PUT_queries()</text>
+  <text x="436" y="624" class="small">value 是 None（delete）</text>
+  <rect x="436" y="634" width="288" height="44" rx="8" class="codebox"/>
+  <text x="448" y="652" class="code-s">DELETE FROM store</text>
+  <text x="448" y="671" class="code-s">WHERE prefix=? AND key IN (…)</text>
+  <text x="436" y="708" class="small">否则（新增 或 修改）</text>
+  <rect x="436" y="718" width="288" height="76" rx="8" class="codebox"/>
+  <text x="448" y="740" class="code-s" font-weight="700">INSERT OR REPLACE INTO store</text>
+  <text x="448" y="761" class="code-s">VALUES (…, CURRENT_TIMESTAMP,</text>
+  <text x="448" y="782" class="code-s">        CURRENT_TIMESTAMP, …)</text>
+  <path d="M 580 808 L 580 824" class="line" marker-end="url(#tip)"/>
+
+  <rect x="420" y="828" width="320" height="88" rx="10" class="reset"/>
+  <text x="436" y="852" class="body">新增：插入一行</text>
+  <text x="436" y="876" class="body">修改：先删掉旧行，再插入新行</text>
+  <text x="436" y="900" class="body t-reset">→ created_at 重置</text>
+
+  <!-- ============ 列 3：PostgresStore ============ -->
+  <rect x="776" y="392" width="352" height="540" rx="14" class="panel"/>
+  <text x="796" y="424" class="code-h">PostgresStore.batch()</text>
+  <text x="796" y="448" class="small">数据在 PostgreSQL 的 store 表里</text>
+
+  <rect x="792" y="464" width="320" height="84" rx="10" class="stepbox"/>
+  <text x="808" y="490" class="step">① self._cursor(pipeline=True)</text>
+  <text x="808" y="515" class="small">取连接和游标，整批 SQL</text>
+  <text x="808" y="537" class="small">用 pipeline（或事务）一起提交</text>
+  <path d="M 952 548 L 952 564" class="line" marker-end="url(#tip)"/>
+
+  <rect x="792" y="568" width="320" height="240" rx="10" class="stepbox"/>
+  <text x="808" y="594" class="step">② _prepare_batch_PUT_queries()</text>
+  <text x="808" y="624" class="small">value 是 None（delete）</text>
+  <rect x="808" y="634" width="288" height="44" rx="8" class="codebox"/>
+  <text x="820" y="652" class="code-s">DELETE FROM store</text>
+  <text x="820" y="671" class="code-s">WHERE prefix=%s AND key IN (…)</text>
+  <text x="808" y="708" class="small">否则（新增 或 修改）</text>
+  <rect x="808" y="718" width="288" height="76" rx="8" class="codebox"/>
+  <text x="820" y="740" class="code-s">INSERT INTO store VALUES (…)</text>
+  <text x="820" y="761" class="code-s" font-weight="700">ON CONFLICT (prefix, key)</text>
+  <text x="820" y="782" class="code-s" font-weight="700">DO UPDATE SET value, updated_at</text>
+  <path d="M 952 808 L 952 824" class="line" marker-end="url(#tip)"/>
+
+  <rect x="792" y="828" width="320" height="88" rx="10" class="keep"/>
+  <text x="808" y="852" class="body">新增：插入一行</text>
+  <text x="808" y="876" class="body">修改：在原行上只改 SET 里的列</text>
+  <text x="808" y="900" class="body t-keep">→ created_at 保留，updated_at 更新</text>
+</svg>

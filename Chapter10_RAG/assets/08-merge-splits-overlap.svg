@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="790" viewBox="0 0 1200 790" role="img" aria-labelledby="title desc">
+  <title id="title">_merge_splits：chunk_size 和 chunk_overlap 怎样决定每一块</title>
+  <desc id="desc">三段文字长度为 20、29、20，分隔符 \n\n 长 2，chunk_size 为 60。段1 加段2 共 51，再加段3 为 73，超过 60，于是输出块1。之后从头部弹出小片，直到剩余总长不超过 chunk_overlap。chunk_overlap 为 30 时，弹出段1 后剩段2 长 29，保留，块2 是段2 加段3，两块重叠段2。chunk_overlap 为 10 时，段1 和段2 都被弹出，块2 只有段3，没有重叠。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+    <style>
+      text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+      .title{font-size:30px;font-weight:700}
+      .sub{font-size:17px;fill:#52677e}
+      .label{font-size:19px;font-weight:650}
+      .step{font-size:16px;fill:#17304b}
+      .small{font-size:15px;fill:#52677e}
+      .pcode{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:18px;font-weight:600;fill:#7a4300}
+      .code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:15px;fill:#17304b}
+      .bt{font-size:14px;fill:#17304b}
+      .num{font-size:15px;font-weight:650;fill:#52677e}
+      .ok{font-size:16px;font-weight:650;fill:#127a4b}
+      .no{font-size:16px;font-weight:650;fill:#b42318}
+      .panel{fill:#ffffff;stroke:#dce4ee}
+      .p1{fill:#dbeafe;stroke:#93c5fd;stroke-width:1.4}
+      .p2{fill:#ede9fe;stroke:#c4b5fd;stroke-width:1.4}
+      .p3{fill:#fef3c7;stroke:#f2c94c;stroke-width:1.4}
+      .sep{fill:#e5e7eb;stroke:#cbd2dc;stroke-width:1}
+      .gone{opacity:0.32}
+      .strike{stroke:#b42318;stroke-width:2}
+      .chunk{fill:none;stroke:#127a4b;stroke-width:2.2;stroke-dasharray:7 4}
+      .result-ok{fill:#e9f8f1;stroke:#9ad4b6;stroke-width:1.4}
+      .result-no{fill:#fdeceb;stroke:#f1aeb5;stroke-width:1.4}
+      .note{fill:#fff5e4;stroke:#e0a43a;stroke-width:1.5}
+    </style>
+  </defs>
+  <rect width="1200" height="790" rx="20" fill="#f6f8fc"/>
+  <text x="36" y="51" class="title">_merge_splits：chunk_size 和 chunk_overlap 怎样决定每一块</text>
+  <text x="36" y="82" class="sub">例子：separator="\n\n" 切出 3 段，长度 20、29、20；分隔符 \n\n 长 2，也计入长度；chunk_size=60</text>
+
+  <!-- 小片 -->
+  <text x="36" y="128" class="label">切出的小片 splits</text>
+  <rect x="210" y="106" width="140" height="32" rx="5" class="p1"/><text x="280" y="127" class="bt" text-anchor="middle">段1 · 20</text>
+  <rect x="360" y="106" width="203" height="32" rx="5" class="p2"/><text x="461" y="127" class="bt" text-anchor="middle">段2 · 29</text>
+  <rect x="573" y="106" width="140" height="32" rx="5" class="p3"/><text x="643" y="127" class="bt" text-anchor="middle">段3 · 20</text>
+  <text x="730" y="127" class="small">（灰色窄条 = 合并时插入的分隔符，长 2）</text>
+
+  <!-- ============ 左：overlap=30 ============ -->
+  <rect x="32" y="160" width="560" height="452" rx="16" class="panel"/>
+  <text x="52" y="194" class="pcode">chunk_overlap=30</text>
+
+  <text x="52" y="230" class="step">① 依次放入：段1 + 段2 = 20 + 2 + 29 = 51 ≤ 60</text>
+  <rect x="52" y="242" width="140" height="30" rx="5" class="p1"/><text x="122" y="262" class="bt" text-anchor="middle">段1</text>
+  <rect x="192" y="242" width="14" height="30" class="sep"/>
+  <rect x="206" y="242" width="203" height="30" rx="5" class="p2"/><text x="307" y="262" class="bt" text-anchor="middle">段2</text>
+
+  <text x="52" y="306" class="step">② 段3 放不下：51 + 2 + 20 = 73 &gt; 60 → 输出块1</text>
+  <rect x="52" y="318" width="140" height="30" rx="5" class="p1"/><text x="122" y="338" class="bt" text-anchor="middle">段1</text>
+  <rect x="192" y="318" width="14" height="30" class="sep"/>
+  <rect x="206" y="318" width="203" height="30" rx="5" class="p2"/><text x="307" y="338" class="bt" text-anchor="middle">段2</text>
+  <rect x="46" y="312" width="369" height="42" rx="7" class="chunk"/>
+  <text x="428" y="339" class="ok">块1（51）</text>
+
+  <text x="52" y="388" class="step">③ 从头部弹出小片，直到剩余总长 ≤ 30</text>
+  <g class="gone"><rect x="52" y="400" width="140" height="30" rx="5" class="p1"/><text x="122" y="420" class="bt" text-anchor="middle">段1</text><rect x="192" y="400" width="14" height="30" class="sep"/></g>
+  <path d="M 56 415 H 202" class="strike"/>
+  <rect x="206" y="400" width="203" height="30" rx="5" class="p2"/><text x="307" y="420" class="bt" text-anchor="middle">段2</text>
+  <text x="422" y="421" class="ok">剩 29 ≤ 30，保留</text>
+
+  <text x="52" y="464" class="step">④ 放入段3，最后输出块2</text>
+  <rect x="52" y="476" width="203" height="30" rx="5" class="p2"/><text x="153" y="496" class="bt" text-anchor="middle">段2</text>
+  <rect x="255" y="476" width="14" height="30" class="sep"/>
+  <rect x="269" y="476" width="140" height="30" rx="5" class="p3"/><text x="339" y="496" class="bt" text-anchor="middle">段3</text>
+  <rect x="46" y="470" width="369" height="42" rx="7" class="chunk"/>
+  <text x="428" y="497" class="ok">块2（51）</text>
+
+  <rect x="52" y="534" width="520" height="58" rx="10" class="result-ok"/>
+  <text x="70" y="569" class="ok">段2 同时出现在块1、块2 里：重叠 29 个字符</text>
+
+  <!-- ============ 右：overlap=10 ============ -->
+  <rect x="608" y="160" width="560" height="452" rx="16" class="panel"/>
+  <text x="628" y="194" class="pcode">chunk_overlap=10</text>
+
+  <text x="628" y="230" class="step">① 依次放入：段1 + 段2 = 51 ≤ 60（同左）</text>
+  <rect x="628" y="242" width="140" height="30" rx="5" class="p1"/><text x="698" y="262" class="bt" text-anchor="middle">段1</text>
+  <rect x="768" y="242" width="14" height="30" class="sep"/>
+  <rect x="782" y="242" width="203" height="30" rx="5" class="p2"/><text x="883" y="262" class="bt" text-anchor="middle">段2</text>
+
+  <text x="628" y="306" class="step">② 段3 放不下 → 输出块1（同左）</text>
+  <rect x="628" y="318" width="140" height="30" rx="5" class="p1"/><text x="698" y="338" class="bt" text-anchor="middle">段1</text>
+  <rect x="768" y="318" width="14" height="30" class="sep"/>
+  <rect x="782" y="318" width="203" height="30" rx="5" class="p2"/><text x="883" y="338" class="bt" text-anchor="middle">段2</text>
+  <rect x="622" y="312" width="369" height="42" rx="7" class="chunk"/>
+  <text x="1004" y="339" class="ok">块1（51）</text>
+
+  <text x="628" y="388" class="step">③ 弹出段1 剩 29 &gt; 10，段2 也弹出，剩 0</text>
+  <g class="gone"><rect x="628" y="400" width="140" height="30" rx="5" class="p1"/><text x="698" y="420" class="bt" text-anchor="middle">段1</text><rect x="768" y="400" width="14" height="30" class="sep"/><rect x="782" y="400" width="203" height="30" rx="5" class="p2"/><text x="883" y="420" class="bt" text-anchor="middle">段2</text></g>
+  <path d="M 632 415 H 981" class="strike"/>
+  <text x="998" y="421" class="no">全部弹出</text>
+
+  <text x="628" y="464" class="step">④ 放入段3，最后输出块2</text>
+  <rect x="628" y="476" width="140" height="30" rx="5" class="p3"/><text x="698" y="496" class="bt" text-anchor="middle">段3</text>
+  <rect x="622" y="470" width="152" height="42" rx="7" class="chunk"/>
+  <text x="788" y="497" class="ok">块2（20）</text>
+
+  <rect x="628" y="534" width="520" height="58" rx="10" class="result-no"/>
+  <text x="646" y="569" class="no">块1、块2 没有重叠：段2 长 29，超过了 chunk_overlap</text>
+
+  <!-- 结论 -->
+  <rect x="32" y="632" width="1136" height="138" rx="14" class="note"/>
+  <text x="52" y="664" class="label">从源码得出的两条规律</text>
+  <text x="52" y="696" class="step">• 重叠部分由上一块末尾的若干个“完整小片”组成，总长 ≤ chunk_overlap；末尾的小片比 chunk_overlap 长，就没有重叠。</text>
+  <text x="52" y="726" class="step">• chunk_size 是“尽量不超过”：单个小片本身就超过 chunk_size（例如 chunk_size=20 时的段2，长 29），会原样成为一块，</text>
+  <text x="66" y="752" class="step">并打印警告 <tspan class="code">Created a chunk of size 29, which is longer than the specified 20</tspan></text>
+</svg>

@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="780" viewBox="0 0 1160 780" role="img" aria-labelledby="title desc">
+  <title id="title">SummarizationMiddleware 在什么时候摘要</title>
+  <desc id="desc">第 1 次调用时 state 只有 1 条长消息，约 139 tokens，超过了 100 的触发阈值，但保留最近 2 条之后没有更早的消息可摘要，所以不摘要，模型看到长消息原文，返回的 response 里长消息还在。第 2 次调用时 state 有 3 条消息，保留最近 2 条，最早的长消息被摘要，state 被改写为摘要加最近 2 条，再调用模型，返回 4 条消息。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+    <style>
+      text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+      .title{font-size:30px;font-weight:700}
+      .sub{font-size:16px;fill:#52677e}
+      .round{font-size:20px;font-weight:700}
+      .label{font-size:17px;font-weight:650}
+      .body{font-size:15px}
+      .small{font-size:14px;fill:#52677e}
+      .yes{font-size:15px;fill:#127a4b;font-weight:700}
+      .no{font-size:15px;fill:#b42318;font-weight:700}
+      .key{font-size:15px;fill:#9a5b00;font-weight:700}
+      .code{font-family:"SFMono-Regular",Menlo,Consolas,"PingFang SC",monospace;font-size:13px}
+      .arrow{fill:none;stroke:#64748b;stroke-width:2;marker-end:url(#arrow)}
+      .panel{fill:#ffffff;stroke:#dce4ee}
+      .state{fill:#eef5ff;stroke:#bad2f1;stroke-width:1.4}
+      .check{fill:#f1edff;stroke:#c9bdf3;stroke-width:1.4}
+      .rewrite{fill:#fff5e4;stroke:#e8c58a;stroke-width:1.4}
+      .out{fill:#f4f6f9;stroke:#d5dde7;stroke-width:1.4}
+    </style>
+  </defs>
+  <rect width="1160" height="780" rx="20" fill="#f6f8fc"/>
+  <text x="36" y="51" class="title">SummarizationMiddleware 在什么时候摘要</text>
+  <text x="36" y="82" class="sub">trigger=[("tokens", 100)]，keep=("messages", 2) · 每次调用模型之前（before_model）检查一次</text>
+
+  <!-- 第 1 次 -->
+  <rect x="32" y="104" width="1096" height="284" rx="16" class="panel"/>
+  <text x="52" y="138" class="round">第 1 次 invoke</text>
+
+  <rect x="52" y="156" width="246" height="210" rx="10" class="state"/>
+  <text x="68" y="184" class="label">调用模型前的 state</text>
+  <text x="68" y="216" class="body">Human「我叫张三，是工程</text>
+  <text x="68" y="238" class="body">师……」× 20</text>
+  <text x="68" y="276" class="small">共 1 条，约 139 tokens</text>
+
+  <path d="M 304 261 H 326" class="arrow"/>
+  <rect x="332" y="156" width="246" height="210" rx="10" class="check"/>
+  <text x="348" y="184" class="label">before_model 检查</text>
+  <text x="348" y="214" class="body">① 超过 100 tokens 吗？</text>
+  <text x="348" y="236" class="yes">　 超过了</text>
+  <text x="348" y="266" class="body">② 保留最近 2 条后，</text>
+  <text x="348" y="288" class="body">　 还有更早的消息吗？</text>
+  <text x="348" y="310" class="no">　 没有，一共只有 1 条</text>
+  <text x="348" y="344" class="key">→ 不摘要，原样放行</text>
+
+  <path d="M 584 261 H 606" class="arrow"/>
+  <rect x="612" y="156" width="246" height="210" rx="10" class="out"/>
+  <text x="628" y="184" class="label">调用模型</text>
+  <text x="628" y="214" class="body">模型看到的是长消息原文</text>
+  <text x="628" y="246" class="body">回复追加到 state：</text>
+  <text x="628" y="268" class="body">AI「请说明你希望我如何</text>
+  <text x="628" y="290" class="body">处理这段文字……」</text>
+
+  <path d="M 864 261 H 886" class="arrow"/>
+  <rect x="892" y="156" width="216" height="210" rx="10" class="out"/>
+  <text x="908" y="184" class="label">返回的 response</text>
+  <text x="908" y="214" class="body">messages 共 2 条：</text>
+  <text x="908" y="238" class="body">Human（长消息原文）</text>
+  <text x="908" y="260" class="body">AI 回复 1</text>
+  <text x="908" y="300" class="key">所以第一次打印</text>
+  <text x="908" y="322" class="key">还是长消息</text>
+
+  <!-- 第 2 次 -->
+  <rect x="32" y="406" width="1096" height="300" rx="16" class="panel"/>
+  <text x="52" y="440" class="round">第 2 次 invoke</text>
+
+  <rect x="52" y="458" width="246" height="226" rx="10" class="state"/>
+  <text x="68" y="486" class="label">调用模型前的 state</text>
+  <text x="68" y="518" class="body">Human（长消息原文）</text>
+  <text x="68" y="542" class="body">AI 回复 1</text>
+  <text x="68" y="566" class="body">Human「请总结一下我的信息」</text>
+  <text x="68" y="604" class="small">共 3 条，约 156 tokens</text>
+
+  <path d="M 304 571 H 326" class="arrow"/>
+  <rect x="332" y="458" width="246" height="226" rx="10" class="check"/>
+  <text x="348" y="486" class="label">before_model 检查</text>
+  <text x="348" y="516" class="body">① 超过 100 tokens 吗？</text>
+  <text x="348" y="538" class="yes">　 超过了</text>
+  <text x="348" y="568" class="body">② 保留最近 2 条后，</text>
+  <text x="348" y="590" class="body">　 还有更早的消息吗？</text>
+  <text x="348" y="612" class="yes">　 有 1 条：长消息</text>
+  <text x="348" y="646" class="key">→ 调用摘要模型，</text>
+  <text x="348" y="668" class="key">　 把它压缩成摘要</text>
+
+  <path d="M 584 571 H 606" class="arrow"/>
+  <rect x="612" y="458" width="246" height="226" rx="10" class="rewrite"/>
+  <text x="628" y="486" class="label">改写 state</text>
+  <text x="628" y="514" class="code">RemoveMessage(REMOVE_ALL…)</text>
+  <text x="628" y="544" class="body">+ Human「Here is a</text>
+  <text x="628" y="566" class="body">　 summary……」</text>
+  <text x="628" y="596" class="body">+ AI 回复 1</text>
+  <text x="628" y="620" class="body">+ Human「请总结……」</text>
+  <text x="628" y="656" class="small">最近 2 条保留原文</text>
+
+  <path d="M 864 571 H 886" class="arrow"/>
+  <rect x="892" y="458" width="216" height="226" rx="10" class="out"/>
+  <text x="908" y="486" class="label">调用模型并返回</text>
+  <text x="908" y="516" class="body">模型看到：</text>
+  <text x="908" y="538" class="body">摘要 + 最近 2 条</text>
+  <text x="908" y="568" class="body">追加 AI 回复 2</text>
+  <text x="908" y="606" class="key">response 共 4 条，</text>
+  <text x="908" y="628" class="key">长消息已换成摘要</text>
+
+  <text x="36" y="742" class="body">要点：摘要发生在“调用模型之前”，而且最近 keep 条消息总是保留原文。第 1 次调用时，长消息本身就是最近的消息，所以不会被摘要。</text>
+</svg>
