@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">客服知识库案例的构建流程</title>
+  <desc id="desc">索引阶段：knowledge.txt 读成 Document，用 RecursiveCharacterTextSplitter 切成 45 个块，用 bge-large-zh-v1.5 的 embed_documents 得到 45 个 1024 维向量，upsert 到 Milvus Lite 的 Atguigu 库 docs collection。问答阶段：用户问题经 embed_query 变成向量，client.search 取最相似的 3 块，拼成带编号和来源的上下文，和问题一起交给只有系统提示词、没有工具的 Agent，生成回答。这是 2-Step RAG。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+    <style>
+      text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+      .title{font-size:30px;font-weight:700}
+      .sub{font-size:17px;fill:#52677e}
+      .lane{font-size:19px;font-weight:700}
+      .label{font-size:17px;font-weight:650}
+      .small{font-size:14px;fill:#52677e}
+      .body{font-size:15px;fill:#17304b}
+      .code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13.5px;fill:#17304b}
+      .arrow{fill:none;stroke:#64748b;stroke-width:2;marker-end:url(#arrow)}
+      .panel{fill:#ffffff;stroke:#dce4ee}
+      .write{fill:#eef5ff;stroke:#bad2f1;stroke-width:1.5}
+      .query{fill:#fff5e4;stroke:#e0a43a;stroke-width:1.5}
+      .store{fill:#e9f8f1;stroke:#9ad4b6;stroke-width:1.5}
+      .model{fill:#f1edff;stroke:#c9bdf3;stroke-width:1.5}
+      .note{fill:#fff9ef;stroke:#e0a43a;stroke-width:1.3}
+    </style>
+  </defs>
+  <rect width="1200" height="720" rx="20" fill="#f6f8fc"/>
+  <text x="36" y="51" class="title">客服知识库案例：构建流程</text>
+  <text x="36" y="82" class="sub">索引阶段只运行一次，问答阶段每次提问都走一遍 · 方框里的编号对应笔记的步骤</text>
+
+  <rect x="32" y="104" width="1136" height="520" rx="16" class="panel"/>
+
+  <!-- 索引阶段 -->
+  <text x="52" y="138" class="lane" fill="#1f5fa8">索引阶段（写入知识）</text>
+
+  <rect x="52" y="156" width="196" height="112" rx="12" class="write"/>
+  <text x="150" y="188" class="label" text-anchor="middle">knowledge.txt</text>
+  <text x="150" y="214" class="body" text-anchor="middle">读成 1 个 Document</text>
+  <text x="150" y="240" class="small" text-anchor="middle">④ 读取</text>
+
+  <rect x="278" y="156" width="196" height="112" rx="12" class="write"/>
+  <text x="376" y="188" class="label" text-anchor="middle">切分</text>
+  <text x="376" y="214" class="code" text-anchor="middle">RecursiveCharacter…</text>
+  <text x="376" y="240" class="small" text-anchor="middle">④ 200 / 80 → 45 块</text>
+
+  <rect x="504" y="156" width="196" height="112" rx="12" class="model"/>
+  <text x="602" y="188" class="label" text-anchor="middle">向量化</text>
+  <text x="602" y="214" class="code" text-anchor="middle">embed_documents</text>
+  <text x="602" y="240" class="small" text-anchor="middle">⑤ 45 × 1024 维</text>
+
+  <rect x="730" y="156" width="196" height="112" rx="12" class="write"/>
+  <text x="828" y="188" class="label" text-anchor="middle">写入</text>
+  <text x="828" y="214" class="code" text-anchor="middle">client.upsert</text>
+  <text x="828" y="240" class="small" text-anchor="middle">⑤ id、vector、text…</text>
+
+  <rect x="956" y="146" width="192" height="132" rx="12" class="store"/>
+  <text x="1052" y="176" class="label" text-anchor="middle">Milvus Lite</text>
+  <text x="1052" y="200" class="code" text-anchor="middle">db/Assistant.db</text>
+  <text x="1052" y="224" class="body" text-anchor="middle">库 Atguigu / docs</text>
+  <text x="1052" y="248" class="small" text-anchor="middle">② dim=1024，COSINE</text>
+  <text x="1052" y="268" class="small" text-anchor="middle">① ② 配置与创建</text>
+
+  <path d="M 248 212 L 272 212" class="arrow"/>
+  <path d="M 474 212 L 498 212" class="arrow"/>
+  <path d="M 700 212 L 724 212" class="arrow"/>
+  <path d="M 926 212 L 950 212" class="arrow"/>
+
+  <!-- 共用的嵌入模型 -->
+  <text x="52" y="318" class="body">③ 两个阶段用同一个嵌入模型 bge-large-zh-v1.5：写入时 embed_documents，提问时 embed_query</text>
+
+  <path d="M 1052 278 L 1052 352 L 376 352 L 376 410" class="arrow"/>
+  <text x="700" y="344" class="small" text-anchor="middle">search：在库里找最相似的 3 块</text>
+
+  <!-- 问答阶段 -->
+  <text x="52" y="398" class="lane" fill="#9a5b00">问答阶段（每次提问）</text>
+
+  <rect x="52" y="416" width="196" height="112" rx="12" class="query"/>
+  <text x="150" y="448" class="label" text-anchor="middle">用户问题</text>
+  <text x="150" y="474" class="body" text-anchor="middle">“7 天内退款</text>
+  <text x="150" y="496" class="body" text-anchor="middle">为什么被拒？”</text>
+
+  <rect x="278" y="416" width="196" height="112" rx="12" class="query"/>
+  <text x="376" y="448" class="label" text-anchor="middle">检索 retrieve</text>
+  <text x="376" y="474" class="code" text-anchor="middle">embed_query</text>
+  <text x="376" y="496" class="code" text-anchor="middle">+ search(limit=3)</text>
+  <text x="376" y="518" class="small" text-anchor="middle">⑦</text>
+
+  <rect x="504" y="416" width="196" height="112" rx="12" class="query"/>
+  <text x="602" y="448" class="label" text-anchor="middle">拼接上下文</text>
+  <text x="602" y="474" class="code" text-anchor="middle">[片段i | chunk_id</text>
+  <text x="602" y="496" class="code" text-anchor="middle">| source] + 问题</text>
+  <text x="602" y="518" class="small" text-anchor="middle">⑧ generate_answer</text>
+
+  <rect x="730" y="416" width="196" height="112" rx="12" class="model"/>
+  <text x="828" y="448" class="label" text-anchor="middle">Agent 生成</text>
+  <text x="828" y="474" class="body" text-anchor="middle">gpt-6-luna</text>
+  <text x="828" y="496" class="body" text-anchor="middle">系统提示词，无工具</text>
+  <text x="828" y="518" class="small" text-anchor="middle">⑥</text>
+
+  <rect x="956" y="416" width="192" height="112" rx="12" class="store"/>
+  <text x="1052" y="460" class="label" text-anchor="middle">回答</text>
+  <text x="1052" y="488" class="body" text-anchor="middle">只依据检索到的片段</text>
+
+  <path d="M 248 472 L 272 472" class="arrow"/>
+  <path d="M 474 472 L 498 472" class="arrow"/>
+  <path d="M 700 472 L 724 472" class="arrow"/>
+  <path d="M 926 472 L 950 472" class="arrow"/>
+
+  <text x="52" y="574" class="body">检索在代码里固定执行，模型只负责生成：这是 2-Step RAG（10.5.1）。Agent 没有工具，相当于一次模型调用。</text>
+  <text x="52" y="600" class="small">把 retrieve 包装成工具交给 Agent，由模型决定要不要检索、检索几次，就是 Agentic RAG（10.5.2）。</text>
+
+  <rect x="32" y="640" width="1136" height="60" rx="12" class="note"/>
+  <text x="56" y="667" class="body">重复运行时从“创建 collection”那一步开始：它会先删掉旧的 collection，避免上一次的旧数据留在库里。</text>
+  <text x="56" y="688" class="small">只重跑切分和写入时，块变少了，多出来的旧主键不会被覆盖（见步骤 ⑤ 的补充）。</text>
+</svg>
