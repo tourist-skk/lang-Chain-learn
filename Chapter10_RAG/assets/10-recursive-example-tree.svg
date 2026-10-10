@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="840" viewBox="0 0 1200 840" role="img" aria-labelledby="title desc">
+  <title id="title">案例一的递归过程</title>
+  <desc id="desc">chunk_size=10。第 1 层用 \n\n 把 72 字的文本切成两个片段，都不短于 10，继续切。片段 LangChain框架特性（13 字）里没有 \n 和空格，用空字符串逐字符切，得到块 1 和块 2。另一个片段（59 字）用 \n 切成 4 个片段：\n（1 字，合并后 strip 为空被丢弃）、\n多模型集成(GPT/Claude)（18 字，逐字符切出块 3、块 4）、\n记忆管理功能（7 字，成为块 5）、\n链式调用设计。文档分析场景示例：需要处理PDF/Word等格式。（33 字，逐字符切出块 6 到块 9）。</desc>
+  <defs>
+    <style>
+      text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+      .title{font-size:30px;font-weight:700}
+      .sub{font-size:17px;fill:#52677e}
+      .head{font-size:17px;font-weight:650;fill:#52677e}
+      .label{font-size:18px;font-weight:650}
+      .code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:14px;fill:#17304b}
+      .len{font-size:14px;font-weight:650;fill:#52677e}
+      .how{font-size:14px;fill:#7a4300}
+      .body{font-size:15px;fill:#17304b}
+      .gone-text{font-size:14px;fill:#8a94a3}
+      .edge{fill:none;stroke:#94a3b8;stroke-width:1.6}
+      .panel{fill:#ffffff;stroke:#dce4ee}
+      .long{fill:#fff5e4;stroke:#e0a43a;stroke-width:1.6}
+      .short{fill:#eef5ff;stroke:#7fa8dc;stroke-width:1.6}
+      .chunk{fill:#e9f8f1;stroke:#9ad4b6;stroke-width:1.5}
+      .gone{fill:#f4f6f9;stroke:#c3ccd8;stroke-width:1.4;stroke-dasharray:6 4}
+      .note{fill:#fff9ef;stroke:#e0a43a;stroke-width:1.3}
+    </style>
+  </defs>
+  <rect width="1200" height="840" rx="20" fill="#f6f8fc"/>
+  <text x="36" y="51" class="title">案例一的递归过程（chunk_size=10，chunk_overlap=0）</text>
+  <text x="36" y="82" class="sub">每个框：片段内容 · 长度（字符数）。\n 表示换行符，算 1 个字符</text>
+
+  <!-- 图例 -->
+  <rect x="36" y="98" width="18" height="14" rx="3" class="long"/><text x="62" y="110" class="len">≥ chunk_size，继续往下切</text>
+  <rect x="256" y="98" width="18" height="14" rx="3" class="short"/><text x="282" y="110" class="len">&lt; chunk_size，留在本层等待合并</text>
+  <rect x="520" y="98" width="18" height="14" rx="3" class="chunk"/><text x="546" y="110" class="len">最终的块（编号同案例一的输出）</text>
+
+  <rect x="24" y="124" width="1152" height="530" rx="16" class="panel"/>
+  <text x="44" y="152" class="head">第 1 层</text>
+  <text x="330" y="152" class="head">第 2 层</text>
+  <text x="630" y="152" class="head">第 3 层</text>
+  <text x="930" y="152" class="head">最终的块</text>
+
+  <!-- 第 1 层 -->
+  <rect x="40" y="360" width="240" height="64" rx="8" class="long"/>
+  <text x="54" y="386" class="code">LangChain框架特性\n\n…</text>
+  <text x="54" y="410" class="len">72</text>
+  <text x="44" y="448" class="how">用 "\n\n" 切 → 2 个片段</text>
+
+  <!-- 第 2 层 -->
+  <path d="M 280 392 H 305 V 186 H 330" class="edge"/>
+  <path d="M 305 392 V 452 H 330" class="edge"/>
+
+  <rect x="330" y="164" width="250" height="44" rx="8" class="long"/>
+  <text x="344" y="191" class="code">LangChain框架特性</text>
+  <text x="566" y="191" class="len" text-anchor="end">13</text>
+  <text x="334" y="228" class="how">没有 "\n"、" " → 用 "" 逐字符切</text>
+
+  <rect x="330" y="430" width="250" height="44" rx="8" class="long"/>
+  <text x="344" y="457" class="code">\n\n多模型集成(GPT/…</text>
+  <text x="566" y="457" class="len" text-anchor="end">59</text>
+  <text x="334" y="494" class="how">用 "\n" 切 → 4 个片段</text>
+
+  <!-- 第 3 层 -->
+  <path d="M 580 452 H 605 V 274 H 630" class="edge"/>
+  <path d="M 605 349 H 630" class="edge"/>
+  <path d="M 605 452 V 431 H 630" class="edge"/>
+  <path d="M 605 452 V 566 H 630" class="edge"/>
+
+  <rect x="630" y="254" width="250" height="40" rx="8" class="short"/>
+  <text x="644" y="279" class="code">\n</text>
+  <text x="866" y="279" class="len" text-anchor="end">1</text>
+
+  <rect x="630" y="329" width="250" height="40" rx="8" class="long"/>
+  <text x="644" y="354" class="code">\n多模型集成(GPT/Claude)</text>
+  <text x="866" y="354" class="len" text-anchor="end">18</text>
+  <text x="634" y="388" class="how">用 "" 逐字符切</text>
+
+  <rect x="630" y="411" width="250" height="40" rx="8" class="short"/>
+  <text x="644" y="436" class="code">\n记忆管理功能</text>
+  <text x="866" y="436" class="len" text-anchor="end">7</text>
+
+  <rect x="630" y="546" width="250" height="40" rx="8" class="long"/>
+  <text x="644" y="571" class="code">\n链式调用设计。文档分析…</text>
+  <text x="866" y="571" class="len" text-anchor="end">33</text>
+  <text x="634" y="605" class="how">用 "" 逐字符切</text>
+
+  <!-- 最终的块 -->
+  <path d="M 580 186 H 905 V 179 H 930" class="edge"/>
+  <path d="M 905 186 V 223 H 930" class="edge"/>
+  <path d="M 880 274 H 930" class="edge"/>
+  <path d="M 880 349 H 905 V 329 H 930" class="edge"/>
+  <path d="M 905 349 V 371 H 930" class="edge"/>
+  <path d="M 880 431 H 930" class="edge"/>
+  <path d="M 880 566 H 905 V 497 H 930" class="edge"/>
+  <path d="M 905 541 H 930" class="edge"/>
+  <path d="M 905 585 H 930" class="edge"/>
+  <path d="M 905 566 V 629 H 930" class="edge"/>
+
+  <rect x="930" y="162" width="230" height="34" rx="7" class="chunk"/>
+  <text x="944" y="184" class="code">块1 LangChain框</text><text x="1148" y="184" class="len" text-anchor="end">10</text>
+  <rect x="930" y="206" width="230" height="34" rx="7" class="chunk"/>
+  <text x="944" y="228" class="code">块2 架特性</text><text x="1148" y="228" class="len" text-anchor="end">3</text>
+
+  <rect x="930" y="257" width="230" height="34" rx="7" class="gone"/>
+  <text x="944" y="279" class="gone-text">strip 后是空字符串，丢弃</text>
+
+  <rect x="930" y="312" width="230" height="34" rx="7" class="chunk"/>
+  <text x="944" y="334" class="code">块3 多模型集成(GPT</text><text x="1148" y="334" class="len" text-anchor="end">9</text>
+  <rect x="930" y="354" width="230" height="34" rx="7" class="chunk"/>
+  <text x="944" y="376" class="code">块4 /Claude)</text><text x="1148" y="376" class="len" text-anchor="end">8</text>
+
+  <rect x="930" y="414" width="230" height="34" rx="7" class="chunk"/>
+  <text x="944" y="436" class="code">块5 记忆管理功能</text><text x="1148" y="436" class="len" text-anchor="end">6</text>
+
+  <rect x="930" y="480" width="230" height="34" rx="7" class="chunk"/>
+  <text x="944" y="502" class="code">块6 链式调用设计。文档</text><text x="1148" y="502" class="len" text-anchor="end">9</text>
+  <rect x="930" y="524" width="230" height="34" rx="7" class="chunk"/>
+  <text x="944" y="546" class="code">块7 分析场景示例：需要处</text><text x="1148" y="546" class="len" text-anchor="end">10</text>
+  <rect x="930" y="568" width="230" height="34" rx="7" class="chunk"/>
+  <text x="944" y="590" class="code">块8 理PDF/Word等</text><text x="1148" y="590" class="len" text-anchor="end">10</text>
+  <rect x="930" y="612" width="230" height="34" rx="7" class="chunk"/>
+  <text x="944" y="634" class="code">块9 格式。</text><text x="1148" y="634" class="len" text-anchor="end">3</text>
+
+  <!-- 结论 -->
+  <rect x="24" y="672" width="1152" height="148" rx="14" class="note"/>
+  <text x="44" y="704" class="label">从这棵树看出的三点</text>
+  <text x="44" y="736" class="body">• 块2“架特性”只有 3 个字：它和块3 来自不同分支，不会合并。蓝色的“\n”和“\n记忆管理功能”虽然在同一层，但中间隔着一个长片段，也没有合并。</text>
+  <text x="44" y="764" class="body">• 块3、块6 只有 9 个字：片段开头的 \n 计入了长度，合并后被 strip_whitespace 删掉。</text>
+  <text x="44" y="792" class="body">• 默认分隔符里没有“。”，最后一个片段只能逐字符切，块6～块9 的切分点都落在句子中间（如“需要处 | 理PDF”）。</text>
+</svg>

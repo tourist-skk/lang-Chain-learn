@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="930" viewBox="0 0 1200 930" role="img" aria-labelledby="title desc">
   <title id="title">TextSplitter 的调用链：每个参数在哪一步生效</title>
-  <desc id="desc">split_documents 取出每个 Document 的 page_content 和 metadata，调用 create_documents；create_documents 对每段文本调用 split_text，每个块生成一个 Document，add_start_index 在这里生效。split_text 是抽象方法，字符类切分器分两步：第一步 _split_text_with_regex 按分隔符切成小片，keep_separator 在这里生效；第二步 _merge_splits 把小片合并成块，chunk_size、chunk_overlap、length_function 在这里生效，其中 _join_docs 负责拼接并按 strip_whitespace 去掉首尾空白。类方法 from_tiktoken_encoder 和 from_huggingface_tokenizer 用 token 计数函数作为 length_function。</desc>
+  <desc id="desc">split_documents 取出每个 Document 的 page_content 和 metadata，调用 create_documents；create_documents 对每段文本调用 split_text，每个块生成一个 Document，add_start_index 在这里生效。split_text 是抽象方法，子类大多分两步：第一步按自己的规则切成小片，CharacterTextSplitter 等在这一步用 keep_separator；第二步 _merge_splits 把小片合并成块，chunk_size、chunk_overlap、length_function 在这里生效，其中 _join_docs 负责拼接并按 strip_whitespace 去掉首尾空白。类方法 from_tiktoken_encoder 和 from_huggingface_tokenizer 用 token 计数函数作为 length_function。</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
     <style>
@@ -29,7 +29,7 @@
   </defs>
   <rect width="1200" height="930" rx="20" fill="#f6f8fc"/>
   <text x="36" y="51" class="title">TextSplitter 的调用链：每个参数在哪一步生效</text>
-  <text x="36" y="82" class="sub">源码位置 langchain_text_splitters/base.py、character.py（1.1.2）· 蓝色等宽字是返回值类型</text>
+  <text x="36" y="82" class="sub">源码位置 langchain_text_splitters/base.py（1.1.2）· 蓝色等宽字是返回值类型</text>
 
   <!-- 左：调用链 -->
   <rect x="32" y="104" width="716" height="806" rx="16" class="panel"/>
@@ -55,11 +55,11 @@
   <rect x="56" y="404" width="668" height="338" rx="12" class="core"/>
   <text x="74" y="436" class="code-b">split_text(text)</text>
   <text x="706" y="436" class="ret" text-anchor="end">→ list[str]</text>
-  <text x="74" y="462" class="core-text">抽象方法，由子类实现。CharacterTextSplitter、RecursiveCharacterTextSplitter 等都分两步：</text>
+  <text x="74" y="462" class="core-text">抽象方法，由子类实现。大多数子类都分两步：</text>
 
   <rect x="80" y="478" width="620" height="98" rx="10" class="step"/>
-  <text x="96" y="507" class="code">① _split_text_with_regex(text, separator, keep_separator)</text>
-  <text x="96" y="533" class="small">按分隔符把文本切成小片（splits），例如按 \n\n 切成三段：</text>
+  <text x="96" y="507" class="label" style="font-size:17px">① 切成小片：每个子类自己实现</text>
+  <text x="96" y="533" class="small">例如按 \n\n 切成三段；CharacterTextSplitter 用分隔符切（见 2.3.4.1）</text>
   <rect x="96" y="544" width="96" height="24" rx="5" class="chip"/><text x="144" y="561" class="chip-text" text-anchor="middle">段1</text>
   <rect x="202" y="544" width="130" height="24" rx="5" class="chip"/><text x="267" y="561" class="chip-text" text-anchor="middle">段2</text>
   <rect x="342" y="544" width="96" height="24" rx="5" class="chip"/><text x="390" y="561" class="chip-text" text-anchor="middle">段3</text>
@@ -98,8 +98,8 @@
   <!-- keep_separator -->
   <rect x="792" y="482" width="356" height="90" rx="10" class="param"/>
   <text x="808" y="510" class="pcode">keep_separator=False</text>
-  <text x="808" y="536" class="small">False 丢掉；True/"start" 接在下一片开头；</text>
-  <text x="808" y="558" class="small">"end" 接在上一片末尾</text>
+  <text x="808" y="536" class="small">父类不使用；CharacterTextSplitter 等</text>
+  <text x="808" y="558" class="small">切小片时决定分隔符的去留（2.3.4.1）</text>
   <path d="M 700 527 H 790" class="link"/>
 
   <!-- _merge_splits 的四个参数 -->
