@@ -32,3 +32,6 @@ Chapter10_RAG/load/
 
 # Chapter10_RAG Hugging Face model cache
 Chapter10_RAG/huggingface/
+
+# Chapter10_RAG vector database runtime data (Milvus Lite)
+Chapter10_RAG/db/
