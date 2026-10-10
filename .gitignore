@@ -29,3 +29,6 @@ Chapter09_memory/data/
 
 # Chapter10_RAG test/sample data
 Chapter10_RAG/load/
+
+# Chapter10_RAG Hugging Face model cache
+Chapter10_RAG/huggingface/
