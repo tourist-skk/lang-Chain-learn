@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="660" viewBox="0 0 1160 660" role="img" aria-labelledby="title desc">
+<title id="title">stdio 的协议通道与日志通道</title><desc id="desc">客户端进入会话后启动脚本。客户端通过服务器 stdin 发送 MCP 请求，通过服务器 stdout 接收协议消息。服务器日志写入 stderr，由 log_file 捕获。keep_alive false 时退出上下文同时关闭连接与子进程。</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+<style>
+text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+.title{font-size:30px;font-weight:700} .label{font-size:21px;font-weight:650}
+.body{font-size:18px} .small{font-size:17px;fill:#52677e}
+.code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:17px}
+.panel{fill:white;stroke:#dce4ee;stroke-width:1.5}
+.blue{fill:#eef5ff;stroke:#bad2f1;stroke-width:1.5}
+.green{fill:#e9f8f1;stroke:#9ad4b6;stroke-width:1.5}
+.purple{fill:#f1edff;stroke:#c9bdf3;stroke-width:1.5}
+.amber{fill:#fff5e4;stroke:#e0a43a;stroke-width:1.5}
+.arrow{fill:none;stroke:#64748b;stroke-width:2;marker-end:url(#arrow)}
+</style></defs><rect width="1160" height="660" rx="20" fill="#f6f8fc"/>
+<text x="36" y="50" class="title" text-anchor="start">stdio 的三条流：stdin 接请求，stdout 回协议，stderr 写日志</text>
+<text x="36" y="83" class="small" text-anchor="start">先构造连接配置，进入 async with Client(...) 时再启动脚本。</text>
+<rect x="40" y="135" width="320" height="370" rx="14" class="green"/>
+<rect x="800" y="135" width="320" height="370" rx="14" class="amber"/>
+<text x="60" y="178" class="label" text-anchor="start">notebook：Client</text>
+<text x="60" y="219" class="small" text-anchor="start">调用 list_tools / call_tool</text>
+<text x="60" y="278" class="small" text-anchor="start">接收并解析 MCP 消息</text>
+<text x="60" y="322" class="code" text-anchor="start">得到 CallToolResult</text>
+<rect x="60" y="380" width="280" height="97" rx="14" class="panel"/>
+<text x="80" y="417" class="body" text-anchor="start">log_file 指定的日志文件</text>
+<text x="80" y="454" class="small" text-anchor="start">保存服务端 stderr</text>
+<text x="820" y="178" class="label" text-anchor="start">服务脚本：mcp.run</text>
+<text x="820" y="239" class="small" text-anchor="start">从 stdin 读取请求</text>
+<text x="820" y="334" class="small" text-anchor="start">向 stdout 写协议结果</text>
+<text x="820" y="430" class="small" text-anchor="start">logging 写到 stderr</text>
+<text x="820" y="473" class="small" text-anchor="start">不把调试 print 写进 stdout</text>
+<path d="M 364 244 H 796" class="arrow"/>
+<path d="M 796 339 H 364" class="arrow"/>
+<path d="M 796 435 H 344" class="arrow"/>
+<text x="580" y="225" class="body" text-anchor="middle">请求 → 服务端 stdin</text>
+<text x="580" y="320" class="body" text-anchor="middle">服务端 stdout → 协议结果</text>
+<text x="580" y="416" class="body" text-anchor="middle">服务端 stderr → 调试日志</text>
+<rect x="40" y="548" width="1080" height="76" rx="14" class="purple"/>
+<text x="60" y="593" class="body" text-anchor="start">退出 Client 且 keep_alive=False：关闭协议连接、管道和服务子进程；日志用于核对 PID 与调用。</text>
+</svg>

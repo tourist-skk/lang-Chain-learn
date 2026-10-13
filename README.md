@@ -1,6 +1,6 @@
 # LangChain Learn
 
-基于 **LangChain 1.x** 的 Python 学习项目，以 Jupyter Notebook 形式系统讲解 LangChain 生态的核心概念与实战用法：从模型接入、消息与提示词、工具调用、结构化输出，到 Agent、中间件、记忆机制，最终以 RAG（检索增强生成）实战收尾。
+基于 **LangChain 1.x** 的 Python 学习项目，以 Jupyter Notebook 形式系统讲解 LangChain 生态的核心概念与实战用法：从模型接入、消息与提示词、工具调用、结构化输出，到 Agent、中间件、记忆机制，再学习 RAG（检索增强生成）、MCP 与 Skill，并通过实战串联这些能力。
 
 > 配套的生态导读见 [Tutorial/01-LangChain家族四大支柱](Tutorial/01-LangChain家族四大支柱/01-LangChain家族四大支柱.md)。
 
@@ -29,6 +29,8 @@
 | [Chapter08_Middleware](Chapter08_Middleware) | 中间件：概述、摘要、Human-in-the-Loop、PII 脱敏、TodoList、自定义中间件、Hook 执行顺序 |
 | [Chapter09_memory](Chapter09_memory) | 记忆机制：概述、短期记忆、SQL 存储、记忆策略、长期记忆（API/搜索/Agent/异步） |
 | [Chapter10_RAG](Chapter10_RAG) | RAG 实战：概述、文档加载、文本切分、向量化（Embedding）、向量数据库、客服知识库助手 |
+| [Chapter11_MCP](Chapter11_MCP) | MCP：连接与工具适配、FastMCP 服务开发、stdio/HTTP、Tools/Resources/Prompts、多服务与错误处理（01–06 已完成） |
+| [Chapter12_skill](Chapter12_skill) | Skill：SKILL.md 与按需加载、MCP 与 Skill 综合实战（01–02 已完成） |
 
 ## 环境准备
 

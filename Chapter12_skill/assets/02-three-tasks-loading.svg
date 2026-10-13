@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="720" viewBox="0 0 1160 720" role="img" aria-labelledby="title desc">
+<title id="title">三个任务分别加载了哪几层内容</title><desc id="desc">任务 1 是无关任务，消息只有系统提示、用户问题和模型回答，只含第一层技能摘要。任务 2 与套餐有关但信息不全，模型调用 load_skill 读取正文，再按第一步追问用户，不读取资料。任务 3 信息齐全，模型先调用 load_skill 读取正文，再调用 read_skill_file 读取选型指南，三层内容都进入上下文后回答。</desc>
+<style>
+text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+.title{font-size:30px;font-weight:700} .label{font-size:21px;font-weight:650}
+.body{font-size:17px} .small{font-size:16px;fill:#52677e}
+.panel{fill:white;stroke:#dce4ee;stroke-width:1.5}
+.blue{fill:#eef5ff;stroke:#bad2f1;stroke-width:1.5}
+.green{fill:#e9f8f1;stroke:#9ad4b6;stroke-width:1.5}
+.purple{fill:#f1edff;stroke:#c9bdf3;stroke-width:1.5}
+.amber{fill:#fff5e4;stroke:#e0a43a;stroke-width:1.5}
+</style><rect width="1160" height="720" rx="20" fill="#f6f8fc"/>
+<text x="36" y="50" class="title" text-anchor="start">三个任务，加载到不同的层</text>
+<text x="36" y="83" class="small" text-anchor="start">每列是一次 Agent 运行的消息顺序（示意，实际消息以运行输出为准）。</text>
+<text x="40" y="128" class="label" text-anchor="start">任务 1：无关任务</text>
+<text x="40" y="153" class="small" text-anchor="start">翻译一句话</text>
+<text x="410" y="128" class="label" text-anchor="start">任务 2：信息不全</text>
+<text x="410" y="153" class="small" text-anchor="start">想买套餐，没有给出条件</text>
+<text x="780" y="128" class="label" text-anchor="start">任务 3：信息齐全</text>
+<text x="780" y="153" class="small" text-anchor="start">给出人数、问答量和 API 需求</text>
+<rect x="40" y="170" width="340" height="56" rx="10" class="blue"/>
+<text x="58" y="204" class="body" text-anchor="start">System：身份 + 技能摘要</text>
+<rect x="40" y="238" width="340" height="56" rx="10" class="panel"/>
+<text x="58" y="272" class="body" text-anchor="start">Human：用户问题</text>
+<rect x="40" y="306" width="340" height="56" rx="10" class="panel"/>
+<text x="58" y="340" class="body" text-anchor="start">AI：直接回答</text>
+<rect x="410" y="170" width="340" height="56" rx="10" class="blue"/>
+<text x="428" y="204" class="body" text-anchor="start">System：身份 + 技能摘要</text>
+<rect x="410" y="238" width="340" height="56" rx="10" class="panel"/>
+<text x="428" y="272" class="body" text-anchor="start">Human：用户问题</text>
+<rect x="410" y="306" width="340" height="56" rx="10" class="purple"/>
+<text x="428" y="340" class="body" text-anchor="start">AI：调用 load_skill</text>
+<rect x="410" y="374" width="340" height="56" rx="10" class="green"/>
+<text x="428" y="408" class="body" text-anchor="start">Tool：SKILL.md 正文</text>
+<rect x="410" y="442" width="340" height="56" rx="10" class="panel"/>
+<text x="428" y="476" class="body" text-anchor="start">AI：按第 1 步追问缺少的信息</text>
+<rect x="780" y="170" width="340" height="56" rx="10" class="blue"/>
+<text x="798" y="204" class="body" text-anchor="start">System：身份 + 技能摘要</text>
+<rect x="780" y="238" width="340" height="56" rx="10" class="panel"/>
+<text x="798" y="272" class="body" text-anchor="start">Human：用户问题</text>
+<rect x="780" y="306" width="340" height="56" rx="10" class="purple"/>
+<text x="798" y="340" class="body" text-anchor="start">AI：调用 load_skill</text>
+<rect x="780" y="374" width="340" height="56" rx="10" class="green"/>
+<text x="798" y="408" class="body" text-anchor="start">Tool：SKILL.md 正文</text>
+<rect x="780" y="442" width="340" height="56" rx="10" class="purple"/>
+<text x="798" y="476" class="body" text-anchor="start">AI：调用 read_skill_file</text>
+<rect x="780" y="510" width="340" height="56" rx="10" class="amber"/>
+<text x="798" y="544" class="body" text-anchor="start">Tool：plan-guide.md 内容</text>
+<rect x="780" y="578" width="340" height="56" rx="10" class="panel"/>
+<text x="798" y="612" class="body" text-anchor="start">AI：推荐套餐并估算月费</text>
+<rect x="40" y="664" width="22" height="22" rx="5" class="blue"/>
+<text x="72" y="682" class="small" text-anchor="start">第 1 层 元数据</text>
+<rect x="230" y="664" width="22" height="22" rx="5" class="green"/>
+<text x="262" y="682" class="small" text-anchor="start">第 2 层 正文</text>
+<rect x="400" y="664" width="22" height="22" rx="5" class="amber"/>
+<text x="432" y="682" class="small" text-anchor="start">第 3 层 辅助资料</text>
+<rect x="590" y="664" width="22" height="22" rx="5" class="purple"/>
+<text x="622" y="682" class="small" text-anchor="start">模型请求加载</text>
+</svg>

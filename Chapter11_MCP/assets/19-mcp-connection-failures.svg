@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="620" viewBox="0 0 1160 620" role="img" aria-labelledby="title desc">
+<title id="title">套餐服务连不上时，失败出现在哪里</title><desc id="desc">按发现工具时和执行工具时两个阶段，比较配置字典与单服务连接。发现工具时，配置字典跳过连不上的服务，只记录一条 WARNING 日志，工具列表缺少 plans 工具；单服务连接的 list_tools 抛出 RuntimeError。执行工具时，配置字典返回 status 为 error 的 ToolMessage，内容是 Unknown tool，Agent 继续运行；单服务连接的工具抛出 RuntimeError，Agent 中断，需要中间件把异常转成错误消息。</desc>
+<style>
+text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+.title{font-size:30px;font-weight:700} .label{font-size:21px;font-weight:650}
+.head{font-size:19px;font-weight:650;fill:#52677e}
+.body{font-size:18px} .small{font-size:17px;fill:#52677e}
+.code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:16px}
+.blue{fill:#eef5ff;stroke:#bad2f1;stroke-width:1.5}
+.green{fill:#e9f8f1;stroke:#9ad4b6;stroke-width:1.5}
+.amber{fill:#fff5e4;stroke:#e0a43a;stroke-width:1.5}
+.red{fill:#fdeeee;stroke:#e3a3a3;stroke-width:1.5}
+</style><rect width="1160" height="620" rx="20" fill="#f6f8fc"/>
+<text x="36" y="50" class="title" text-anchor="start">同一个故障，在不同位置表现不同</text>
+<text x="36" y="83" class="small" text-anchor="start">套餐服务连不上：配置字典把它当作“少了一个服务”，单服务连接把它当作异常。</text>
+<text x="260" y="135" class="head" text-anchor="start">配置字典（calc + plans）</text>
+<text x="700" y="135" class="head" text-anchor="start">单服务连接（只有 plans）</text>
+<rect x="40" y="155" width="200" height="180" rx="14" class="blue"/>
+<text x="60" y="235" class="label" text-anchor="start">发现工具时</text>
+<text x="60" y="270" class="small" text-anchor="start">服务启动前就停了</text>
+<rect x="260" y="155" width="420" height="180" rx="14" class="amber"/>
+<text x="280" y="195" class="label" text-anchor="start">不抛异常，跳过该服务</text>
+<text x="280" y="232" class="body" text-anchor="start">只记录一条 WARNING 日志</text>
+<text x="280" y="269" class="body" text-anchor="start">工具列表里没有 plans_get_plan</text>
+<text x="280" y="306" class="small" text-anchor="start">要在创建 Agent 前检查预期工具是否齐全</text>
+<rect x="700" y="155" width="420" height="180" rx="14" class="red"/>
+<text x="720" y="195" class="label" text-anchor="start">抛出 RuntimeError</text>
+<text x="720" y="232" class="code" text-anchor="start">list_tools()</text>
+<text x="720" y="269" class="body" text-anchor="start">程序停在创建 Agent 之前</text>
+<text x="720" y="306" class="small" text-anchor="start">问题当场暴露</text>
+<rect x="40" y="355" width="200" height="180" rx="14" class="blue"/>
+<text x="60" y="435" class="label" text-anchor="start">执行工具时</text>
+<text x="60" y="470" class="small" text-anchor="start">发现工具后才停</text>
+<rect x="260" y="355" width="420" height="180" rx="14" class="green"/>
+<text x="280" y="395" class="label" text-anchor="start">返回错误 ToolMessage</text>
+<text x="280" y="432" class="code" text-anchor="start">status="error"，Unknown tool</text>
+<text x="280" y="469" class="body" text-anchor="start">Agent 继续，calc 工具仍可用</text>
+<text x="280" y="506" class="small" text-anchor="start">错误内容不说明是连接问题</text>
+<rect x="700" y="355" width="420" height="180" rx="14" class="red"/>
+<text x="720" y="395" class="label" text-anchor="start">工具执行抛出 RuntimeError</text>
+<text x="720" y="432" class="body" text-anchor="start">不处理时 Agent 运行中断</text>
+<text x="720" y="469" class="body" text-anchor="start">中间件把异常转成错误消息</text>
+<text x="720" y="506" class="small" text-anchor="start">模型收到错误后再回答用户</text>
+<text x="40" y="580" class="small" text-anchor="start">参数错误和业务错误由服务端报告（第三节 3.5），两种连接方式下都会成为 status="error" 的 ToolMessage。</text>
+</svg>

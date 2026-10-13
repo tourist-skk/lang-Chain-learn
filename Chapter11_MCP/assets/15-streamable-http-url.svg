@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="620" viewBox="0 0 1160 620" role="img" aria-labelledby="title desc">
+<title id="title">Streamable HTTP 服务地址的组成</title><desc id="desc">HTTP MCP 端点 URL 由协议、host、port 和 path 组成。服务端绑定 host port 并配置 MCP path，客户端连接完整 URL。http 参数在 FastMCP 中表示 Streamable HTTP。</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+<style>
+text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+.title{font-size:30px;font-weight:700} .label{font-size:21px;font-weight:650}
+.body{font-size:18px} .small{font-size:17px;fill:#52677e}
+.code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:17px}
+.panel{fill:white;stroke:#dce4ee;stroke-width:1.5}
+.blue{fill:#eef5ff;stroke:#bad2f1;stroke-width:1.5}
+.green{fill:#e9f8f1;stroke:#9ad4b6;stroke-width:1.5}
+.purple{fill:#f1edff;stroke:#c9bdf3;stroke-width:1.5}
+.amber{fill:#fff5e4;stroke:#e0a43a;stroke-width:1.5}
+.arrow{fill:none;stroke:#64748b;stroke-width:2;marker-end:url(#arrow)}
+</style></defs><rect width="1160" height="620" rx="20" fill="#f6f8fc"/>
+<text x="36" y="50" class="title" text-anchor="start">HTTP 端点需要对齐：host、port、path</text>
+<text x="36" y="83" class="small" text-anchor="start">8000 是手动启动示例；自动实验每次选一个可用端口。</text>
+<rect x="40" y="125" width="180" height="83" rx="14" class="panel"/>
+<text x="130.0" y="177" class="title" text-anchor="middle">http://</text>
+<rect x="240" y="125" width="370" height="83" rx="14" class="blue"/>
+<text x="425.0" y="177" class="title" text-anchor="middle">127.0.0.1</text>
+<rect x="630" y="125" width="230" height="83" rx="14" class="green"/>
+<text x="745.0" y="177" class="title" text-anchor="middle">:8000</text>
+<rect x="880" y="125" width="240" height="83" rx="14" class="purple"/>
+<text x="1000.0" y="177" class="title" text-anchor="middle">/mcp</text>
+<text x="130" y="247" class="body" text-anchor="middle">协议</text>
+<text x="425" y="247" class="body" text-anchor="middle">host：监听地址</text>
+<text x="745" y="247" class="body" text-anchor="middle">port：端口</text>
+<text x="1000" y="247" class="body" text-anchor="middle">path：MCP 路径</text>
+<rect x="40" y="290" width="500" height="220" rx="14" class="amber"/>
+<rect x="620" y="290" width="500" height="220" rx="14" class="green"/>
+<text x="60" y="333" class="label" text-anchor="start">服务端启动参数</text>
+<text x="60" y="375" class="code" text-anchor="start">mcp.run(transport=&quot;http&quot;,</text>
+<text x="60" y="410" class="code" text-anchor="start">    host=&quot;127.0.0.1&quot;, port=8000,</text>
+<text x="60" y="445" class="code" text-anchor="start">    path=&quot;/mcp&quot;)</text>
+<text x="60" y="482" class="small" text-anchor="start">http 在此表示 Streamable HTTP</text>
+<text x="640" y="333" class="label" text-anchor="start">客户端连接完整 URL</text>
+<text x="640" y="375" class="code" text-anchor="start">StreamableHttpTransport(</text>
+<text x="640" y="410" class="code" text-anchor="start">    &quot;http://127.0.0.1:8000/mcp&quot;)</text>
+<text x="640" y="454" class="small" text-anchor="start">先启动服务，再进入 Client 会话</text>
+<text x="640" y="488" class="small" text-anchor="start">使用 MCP 客户端发送协议请求</text>
+<path d="M 544 404 H 616" class="arrow"/>
+<text x="40" y="568" class="body" text-anchor="start">127.0.0.1 指当前电脑；服务路径若改为 /calc，客户端 URL 也必须改成 /calc。</text>
+</svg>

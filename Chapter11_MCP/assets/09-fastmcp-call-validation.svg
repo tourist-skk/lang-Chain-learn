@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1160" height="590" viewBox="0 0 1160 590" role="img" aria-labelledby="title desc">
+<title id="title">工具调用中的参数校验与业务判断</title><desc id="desc">客户端发起调用后 FastMCP 校验参数，再执行业务函数，最后包装结果。参数精度超范围时不会进入函数；分母为零时进入函数后由业务代码拒绝。</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker>
+<style>
+text{font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;fill:#17304b}
+.title{font-size:30px;font-weight:700} .label{font-size:21px;font-weight:650}
+.body{font-size:18px} .small{font-size:17px;fill:#52677e}
+.code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:17px}
+.panel{fill:white;stroke:#dce4ee;stroke-width:1.5}
+.blue{fill:#eef5ff;stroke:#bad2f1;stroke-width:1.5}
+.green{fill:#e9f8f1;stroke:#9ad4b6;stroke-width:1.5}
+.purple{fill:#f1edff;stroke:#c9bdf3;stroke-width:1.5}
+.amber{fill:#fff5e4;stroke:#e0a43a;stroke-width:1.5}
+.arrow{fill:none;stroke:#64748b;stroke-width:2;marker-end:url(#arrow)}
+</style></defs><rect width="1160" height="590" rx="20" fill="#f6f8fc"/>
+<text x="36" y="50" class="title" text-anchor="start">调用经过两道判断：参数是否合法，业务是否允许</text>
+<text x="36" y="83" class="small" text-anchor="start">函数进入记录放在业务函数的第一行，用它观察失败发生在哪一步。</text>
+<rect x="40" y="145" width="220" height="165" rx="14" class="green"/>
+<text x="60" y="183" class="label" text-anchor="start">① Client 请求</text>
+<rect x="325" y="145" width="220" height="165" rx="14" class="purple"/>
+<text x="345" y="183" class="label" text-anchor="start">② 参数校验</text>
+<rect x="610" y="145" width="220" height="165" rx="14" class="blue"/>
+<text x="630" y="183" class="label" text-anchor="start">③ 业务函数</text>
+<rect x="895" y="145" width="220" height="165" rx="14" class="amber"/>
+<text x="915" y="183" class="label" text-anchor="start">④ 返回结果</text>
+<text x="60" y="224" class="code" text-anchor="start">name=&quot;divide&quot;</text>
+<text x="60" y="263" class="code" text-anchor="start">arguments={...}</text>
+<text x="345" y="224" class="small" text-anchor="start">必填 / 类型 / 范围</text>
+<text x="345" y="263" class="code" text-anchor="start">precision ≤ 6</text>
+<text x="630" y="224" class="small" text-anchor="start">记录进入函数</text>
+<text x="630" y="263" class="small" text-anchor="start">除数检查 → round</text>
+<text x="915" y="224" class="code" text-anchor="start">CallToolResult</text>
+<text x="915" y="263" class="code" text-anchor="start">data / content</text>
+<path d="M 264 237 H 321" class="arrow"/>
+<path d="M 549 237 H 606" class="arrow"/>
+<path d="M 834 237 H 891" class="arrow"/>
+<rect x="325" y="405" width="220" height="108" rx="14" class="amber"/>
+<rect x="610" y="405" width="300" height="108" rx="14" class="amber"/>
+<path d="M 435 314 V 401" class="arrow"/>
+<path d="M 720 314 V 401" class="arrow"/>
+<text x="455" y="363" class="code" text-anchor="start">precision=7</text>
+<text x="740" y="363" class="code" text-anchor="start">denominator=0</text>
+<text x="345" y="443" class="body" text-anchor="start">参数错误：拒绝执行</text>
+<text x="345" y="481" class="small" text-anchor="start">函数进入次数增加 0</text>
+<text x="630" y="443" class="body" text-anchor="start">业务错误：ValueError</text>
+<text x="630" y="481" class="small" text-anchor="start">函数进入次数增加 1</text>
+<text x="40" y="415" class="label" text-anchor="start">正常调用：</text>
+<text x="40" y="455" class="small" text-anchor="start">参数校验通过后</text>
+<text x="40" y="489" class="small" text-anchor="start">执行函数，包装结果</text>
+<text x="40" y="559" class="small" text-anchor="start">使用 raise_on_error=False 观察预期失败：结果的 is_error 为 True，content 中说明原因。</text>
+</svg>
